@@ -1,16 +1,15 @@
-version: '3.8'
-
 services:
   # PostgreSQL with PostGIS
   db:
     image: postgis/postgis:15-3.3
+    platform: linux/amd64
     container_name: catholic-ride-share-db
     environment:
       POSTGRES_USER: catholic_user
       POSTGRES_PASSWORD: catholic_password
       POSTGRES_DB: catholic_ride_share
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
