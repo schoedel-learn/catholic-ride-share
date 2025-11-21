@@ -60,6 +60,14 @@ class Settings(BaseSettings):
     AWS_S3_BUCKET: Optional[str] = None
     AWS_REGION: str = "us-east-1"
 
+    # Background checks (Checkr or similar)
+    CHECKR_API_KEY: Optional[str] = None
+    CHECKR_BASE_URL: str = "https://api.checkr.com"
+
+    # Firebase (push notifications)
+    FIREBASE_CREDENTIALS_PATH: Optional[str] = None
+    FIREBASE_PROJECT_ID: Optional[str] = None
+
     # Application settings
     MAX_DRIVER_DISTANCE_MILES: int = 10
     RIDE_OFFER_EXPIRY_MINUTES: int = 15
