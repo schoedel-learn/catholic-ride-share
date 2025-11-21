@@ -2,10 +2,6 @@
 
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
-
 from app.core.config import settings
 from app.core.security import (
     create_access_token,
@@ -26,6 +22,9 @@ from app.schemas.auth import (
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserResponse
 from app.services import auth_email
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
@@ -146,20 +145,20 @@ def resend_verification(payload: ResendVerificationRequest, db: Session = Depend
 @router.post("/forgot-password", response_model=MessageResponse)
 def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
     """Initiate password reset by sending a reset token via email."""
-    user = db.query(User).filter(User.email == payload.email).first()
+    # Always return a generic message to avoid user enumeration.
+    generic_message = (
+        "If an account exists for this email, password reset instructions have been sent"
+    )
 
-    # Always return a generic message to avoid user enumeration
-    generic_message = "If an account exists for this email, password reset instructions have been sent"
-
-    if not user:
+    # Apply rate limiting based on the email identifier before checking existence.
+    # Even when the limit is exceeded, we still return the generic message to avoid
+    # revealing whether the email is registered.
+    if not auth_email.can_request_password_reset(payload.email):
         return MessageResponse(message=generic_message)
 
-    # Enforce simple rate limiting
-    if not auth_email.can_request_password_reset(user.email):
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Too many password reset requests. Please try again later.",
-        )
+    user = db.query(User).filter(User.email == payload.email).first()
+    if not user:
+        return MessageResponse(message=generic_message)
 
     token = auth_email.create_password_reset_token(user)
     try:
@@ -202,8 +201,18 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
         )
 
     user.password_hash = get_password_hash(payload.new_password)
-    db.commit()
 
-    auth_email.invalidate_reset_token(payload.token)
+    # Invalidate the token before committing the password change so it
+    # cannot be reused if token invalidation fails.
+    try:
+        auth_email.invalidate_reset_token(payload.token)
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Could not complete password reset. Please try again.",
+        )
+
+    db.commit()
 
     return MessageResponse(message="Password has been reset successfully")
