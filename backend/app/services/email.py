@@ -36,9 +36,15 @@ def send_email(
     msg["To"] = to_email
 
     with SMTP(settings.SMTP_HOST, settings.SMTP_PORT or 587) as smtp:
-        if settings.SMTP_USER and settings.SMTP_PASSWORD:
+        # Upgrade to TLS before any authentication attempt when possible.
+        try:
             smtp.starttls()
+        except Exception:
+            # Some servers/ports may not support STARTTLS; in that case we
+            # continue without upgrading but avoid failing hard here.
+            pass
+
+        if settings.SMTP_USER and settings.SMTP_PASSWORD:
             smtp.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+
         smtp.send_message(msg)
-
-

@@ -1,30 +1,68 @@
 # Catholic Ride Share
 
-A community-driven ride-sharing application connecting Catholics who need transportation to Mass, Confession, prayer events, and church social functions with volunteer drivers in their area.
+A community-driven ride-sharing application connecting Catholics who need transportation to Mass, Confession, prayer events, and church social functions with volunteer drivers who are willing to help – especially in rural areas where distances can be long.
 
 ## Mission
 
 To strengthen Catholic communities by ensuring that transportation is never a barrier to participating in the sacraments and church life.
 
-## Features
+## What We Are Building
 
-### Current (Phase 1 - MVP)
-- User registration and authentication
-- Driver and rider profiles
-- Location-based ride matching (10-mile radius)
-- Real-time ride requests and notifications
-- In-app messaging
-- Driver verification workflow
-- Parish database integration
-- Donation system (optional, not required)
+At a high level, Catholic Ride Share is:
 
-### Planned
-- AI-powered driver-rider matching optimization
-- AI chatbot assistant for Mass times and ride booking
-- Route optimization for carpooling
-- AI safety and content moderation
-- Multi-language support
-- Community features and parish integration
+- A **volunteer ride network**: riders request help getting to church activities; drivers choose which rides they are willing to take.
+- **Rural-friendly**: rides may be 10, 20, or more miles away; there is **no hard distance limit**. Distance is information, not a gate.
+- **Privacy-conscious**: only the information needed to coordinate rides is stored; parish records only include **full name and address**, not Mass times or links that change frequently.
+- **Donation-based**: riders can optionally offer donations after rides (via Stripe); there is no required payment for rides.
+- **Admin-supported**: admins can verify drivers, monitor the system, and help resolve issues.
+
+## Feature Overview
+
+### Implemented (Backend foundation so far)
+
+- **Authentication & accounts**
+  - User registration with email and password.
+  - JWT-based login (`access_token` + `refresh_token`).
+  - Email verification with 6‑digit codes (required before using ride features).
+  - Password reset flow with secure, single-use reset tokens.
+- **User profiles**
+  - Rider/driver/both/admin roles.
+  - Basic profile data (name, phone, parish reference).
+  - Optional profile photo upload (stored on S3, resized to 500×500 thumbnail).
+- **Core data models**
+  - `User` with optional last-known location (geospatial point).
+  - `DriverProfile` for vehicle and driver status (verification fields to be extended).
+  - `Parish` with **name + postal address + optional geospatial location** (no Mass times or URLs).
+  - `RideRequest` and `Ride` models for requests and live rides.
+- **Infrastructure**
+  - Dockerized stack: FastAPI backend, Postgres + PostGIS, Redis, Celery worker.
+  - Alembic migrations wired to the same settings as the app.
+
+> Note: Many endpoints are still simple stubs; the backend structure is in place and being built out according to the strategic plan in `braingrid-improvements`.
+
+### Planned (Under active development)
+
+- **Driver experience**
+  - Complete driver profile management (vehicle details, documents).
+  - Multi-step verification workflow (background checks, safe environment, admin approval).
+  - Availability (scheduled windows + “available now for X hours” sessions).
+- **Rider experience**
+  - Create ride requests with pickup + destination and optional parish reference.
+  - Discover willing drivers, with distance shown but **no fixed 10‑mile limit**.
+  - Real-time ride status updates from acceptance through completion/cancellation.
+- **Messaging & notifications**
+  - In-ride chat between rider and driver (WebSocket / Socket.IO).
+  - Push notifications (Firebase Cloud Messaging) + email notifications.
+- **Donations & reviews**
+  - Post-ride rating and optional donations via Stripe.
+  - Transparent handling of Stripe fees and net amounts.
+- **Admin tools**
+  - Admin endpoints for users, drivers, rides, and statistics.
+  - Simple web/admin UI (future) to manage verifications and issues.
+- **AI & assistance (future)**
+  - AI-powered matching suggestions.
+  - AI assistant for parish/ride questions (without storing or serving Mass times).
+  - Multi-language support.
 
 ## Technology Stack
 
@@ -44,6 +82,13 @@ To strengthen Catholic communities by ensuring that transportation is never a ba
 - Docker & Docker Compose
 - PostgreSQL with PostGIS extension
 - Redis for caching and pub/sub
+
+### Frontend / Clients
+
+- **Current**: Backend-first; no production frontend yet.
+- **Planned**:
+  - Flutter mobile app (primary client) for riders and drivers.
+  - Lightweight web/admin frontend for admins and operations.
 
 ## Project Structure
 
@@ -168,25 +213,58 @@ alembic downgrade -1
 
 ## API Endpoints
 
-### Authentication
-- `POST /api/v1/auth/register` - Register new user
-- `POST /api/v1/auth/login` - Login and get access token
+The backend is versioned under `/api/v1`. Some endpoints are fully implemented; others are present as stubs and will be expanded.
 
-### Users
-- `GET /api/v1/users/me` - Get current user profile
-- `PUT /api/v1/users/me` - Update current user profile
+### Authentication (implemented)
 
-### Rides
-- `POST /api/v1/rides/` - Create ride request
-- `GET /api/v1/rides/` - List rides
+- `POST /api/v1/auth/register`  
+  Register a new user (creates an account and sends a verification email).
 
-### Drivers
-- `POST /api/v1/drivers/profile` - Create driver profile
-- `GET /api/v1/drivers/available` - Get available drivers
+- `POST /api/v1/auth/login`  
+  Login with email + password and receive access/refresh tokens.
 
-### Parishes
-- `GET /api/v1/parishes/` - List parishes
-- `GET /api/v1/parishes/{id}` - Get parish details
+- `POST /api/v1/auth/verify-email`  
+  Verify email using a 6‑digit code sent to the user’s email.
+
+- `POST /api/v1/auth/resend-verification`  
+  Request that a new verification email be sent (idempotent-style behavior).
+
+- `POST /api/v1/auth/forgot-password`  
+  Initiate a password reset; always returns a generic success message and is rate-limited to prevent abuse and email enumeration.
+
+- `POST /api/v1/auth/validate-reset-token`  
+  Check whether a reset token is still valid.
+
+- `POST /api/v1/auth/reset-password`  
+  Reset a user’s password using a valid, single-use reset token.
+
+### Users (implemented)
+
+- `GET /api/v1/users/me`  
+  Get the currently authenticated user’s profile.
+
+- `PUT /api/v1/users/me`  
+  Update the current user’s profile (name, phone, parish reference, etc.).
+
+- `POST /api/v1/users/me/photo`  
+  Upload or replace the current user’s profile photo (JPEG/PNG/WebP ≤ 5MB, stored in S3 as a 500×500 thumbnail).
+
+- `DELETE /api/v1/users/me/photo`  
+  Remove the current user’s profile photo (deletes the S3 object on a best-effort basis).
+
+- `GET /api/v1/users/{user_id}`  
+  Get another user’s public profile by ID (requires authentication).
+
+### Rides, Drivers, Parishes (planned / partially stubbed)
+
+These routes exist as placeholders and will be built out according to the strategic plan:
+
+- `POST /api/v1/rides/` – Create ride request (planned: full request schema and matching).  
+- `GET /api/v1/rides/` – List rides for the current user (planned).  
+- `POST /api/v1/drivers/profile` – Create/update driver profile (planned).  
+- `GET /api/v1/drivers/available` – Discover available/willing drivers nearby (planned; **no fixed distance limit**, distance used for ordering only).  
+- `GET /api/v1/parishes/` – List parishes (full name + address only).  
+- `GET /api/v1/parishes/{id}` – Get parish details (full name + address only).
 
 ## Environment Variables
 
@@ -195,9 +273,26 @@ Key environment variables (see `.env.example` for complete list):
 - `SECRET_KEY` - JWT secret key (CHANGE IN PRODUCTION)
 - `DATABASE_URL` - PostgreSQL connection string
 - `REDIS_URL` - Redis connection string
-- `GOOGLE_MAPS_API_KEY` - For routing and geocoding
-- `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` - For AI features
-- `STRIPE_SECRET_KEY` - For donation processing (optional)
+- `GOOGLE_MAPS_API_KEY` - For routing and geocoding (future features)
+
+Email / notifications:
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` - Outbound email configuration
+- `EMAILS_FROM_EMAIL`, `EMAILS_FROM_NAME` - From-address details
+
+Storage:
+- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` - AWS credentials
+- `AWS_S3_BUCKET` - S3 bucket for profile photos and documents
+- `AWS_REGION` - AWS region for the bucket
+
+Payments:
+- `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` - For donation processing (optional)
+
+Background checks / notifications (future):
+- `CHECKR_API_KEY` - For background check integration (optional)
+- `FIREBASE_CREDENTIALS_PATH`, `FIREBASE_PROJECT_ID` - For Firebase Cloud Messaging
+
+AI (future):
+- `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` - For AI assistant and matching features
 
 ## Contributing
 
@@ -224,15 +319,16 @@ This project is built to serve the Catholic community. License TBD.
 
 ## Roadmap
 
-See the planning document for detailed phases:
+The detailed technical roadmap is maintained in the `braingrid-improvements` document and implemented in phases. In summary:
 
-- **Phase 1** (Current): Foundation and core ride-sharing
-- **Phase 2**: Enhanced features (donations, ratings, verification)
-- **Phase 3**: AI chatbot and basic matching
-- **Phase 4-5**: Advanced AI features
-- **Phase 6**: Admin dashboard
-- **Phase 7**: Production polish
-- **Phase 8**: Launch and iteration
+- **Foundation**: Core backend, authentication, email verification, password reset, and profile photos.  
+- **Drivers & availability**: Driver profiles, verification, and availability (scheduled + “available now”).  
+- **Rides & lifecycle**: Ride requests, matching based on willing drivers (not strict radius), ride status transitions, and cancellation rules.  
+- **Messaging & notifications**: In-app messaging, push notifications, and email alerts.  
+- **Donations & reviews**: Post-ride ratings and optional donations via Stripe.  
+- **Parishes**: Simple parish records (name + address only) with geospatial search.  
+- **Admin & analytics**: Admin APIs and dashboards for verification, issues, and high-level stats.  
+- **Clients & AI**: Flutter mobile app, admin web UI, and AI-assisted matching/assistant.
 
 ## Support
 
