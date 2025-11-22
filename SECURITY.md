@@ -5,11 +5,11 @@
 If you discover a security vulnerability in this project, please report it responsibly:
 
 1. **DO NOT** open a public issue
-2. Email the maintainers directly at: [security contact email - to be added]
-3. Or use GitHub's private security advisory feature:
+2. **RECOMMENDED**: Use GitHub's private security advisory feature:
    - Go to the repository's "Security" tab
    - Click "Report a vulnerability"
    - Fill out the security advisory form
+3. Or open a GitHub issue with the `security` label if the vulnerability is not critical
 
 We will acknowledge your report within 48 hours and provide regular updates on our progress.
 
@@ -123,9 +123,9 @@ Before each release:
 ## Contact
 
 For security concerns:
-- Security Advisory: Use GitHub's private security advisory feature
-- General Security: Open an issue (for non-sensitive topics)
-- Urgent Issues: [Contact method to be added]
+- **Critical Vulnerabilities**: Use GitHub's private security advisory feature (Security tab → Report a vulnerability)
+- **General Security**: Open an issue with the `security` label
+- **Urgent Issues**: Create a high-priority GitHub issue and tag repository maintainers
 
 ## Attribution
 
