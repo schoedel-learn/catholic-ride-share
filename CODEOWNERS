@@ -1,0 +1,37 @@
+# CODEOWNERS file
+# 
+# This file defines individuals or teams responsible for code in this repository.
+# Code owners are automatically requested for review when someone opens a pull request 
+# that modifies code that they own.
+#
+# Order matters: the last matching pattern takes precedence.
+#
+# More info: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything in the repo (unless a later match takes precedence)
+* @schoedel-learn
+
+# Security-related files require special attention
+/SECURITY.md @schoedel-learn
+/CODEOWNERS @schoedel-learn
+/.github/workflows/ @schoedel-learn
+
+# Backend code and core security modules
+/backend/app/core/security.py @schoedel-learn
+/backend/app/core/config.py @schoedel-learn
+/backend/app/api/deps/ @schoedel-learn
+
+# Database migrations should be reviewed carefully
+/backend/alembic/ @schoedel-learn
+
+# Environment configuration templates
+/backend/.env.example @schoedel-learn
+
+# Docker configuration
+/docker-compose.yml @schoedel-learn
+/backend/Dockerfile @schoedel-learn
+
+# Documentation
+/docs/ @schoedel-learn
+/README.md @schoedel-learn
+/CONTRIBUTING.md @schoedel-learn
