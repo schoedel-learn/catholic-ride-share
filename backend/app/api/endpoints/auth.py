@@ -224,7 +224,7 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
         try:
             new_token = auth_email.create_password_reset_token(user)
             auth_email.send_password_reset_email(user, new_token)
-        except (RedisError, Exception):
+        except Exception:
             # Best-effort recovery; if this fails, the user will need
             # to initiate a new password reset.
             pass
