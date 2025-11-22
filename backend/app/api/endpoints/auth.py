@@ -24,6 +24,8 @@ from app.schemas.user import UserCreate, UserResponse
 from app.services import auth_email
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from redis.exceptions import RedisError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 router = APIRouter()
@@ -206,7 +208,7 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     # cannot be reused if token invalidation fails.
     try:
         auth_email.invalidate_reset_token(payload.token)
-    except Exception:
+    except RedisError:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -214,15 +216,16 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
         )
 
     # Commit the password change. If this fails after the token has been
-    # invalidated, attempt to restore the token so the user can retry.
+    # invalidated, generate and store a fresh token so the user can retry.
     try:
         db.commit()
-    except Exception:
+    except SQLAlchemyError:
         db.rollback()
         try:
-            auth_email.store_password_reset_token(user, payload.token)
-        except Exception:
-            # Best-effort restoration; if this fails, the user will need
+            new_token = auth_email.create_password_reset_token(user)
+            auth_email.send_password_reset_email(user, new_token)
+        except (RedisError, Exception):
+            # Best-effort recovery; if this fails, the user will need
             # to initiate a new password reset.
             pass
 
