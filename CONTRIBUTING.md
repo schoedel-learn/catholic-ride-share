@@ -9,6 +9,34 @@ Thank you for your interest in contributing to Catholic Ride Share! This project
 - Show empathy towards other contributors
 - Accept constructive criticism gracefully
 
+## Security First
+
+This project serves a non-profit organization and handles sensitive user data. Security is our top priority.
+
+### Before Contributing
+
+1. **Read our [Security Policy](SECURITY.md)** - Understand our security practices
+2. **Never commit secrets** - API keys, passwords, tokens must stay in `.env` files
+3. **Review security checklist** below before submitting PRs
+4. **Report vulnerabilities privately** - Don't create public issues for security bugs
+
+### Security Checklist for All PRs
+
+Before submitting your pull request, verify:
+
+- [ ] No secrets, API keys, or credentials are committed
+- [ ] All user inputs are validated and sanitized
+- [ ] SQL injection prevention (use SQLAlchemy ORM, no raw SQL)
+- [ ] XSS prevention (sanitize user-generated content)
+- [ ] Authentication/authorization checks are in place
+- [ ] Password handling uses bcrypt (never plaintext)
+- [ ] Sensitive data is encrypted at rest and in transit
+- [ ] Error messages don't expose sensitive information
+- [ ] Rate limiting considered for public endpoints
+- [ ] CORS settings are appropriate
+- [ ] Dependencies are from trusted sources
+- [ ] No hardcoded URLs, IPs, or configuration values
+
 ## How to Contribute
 
 ### Reporting Bugs

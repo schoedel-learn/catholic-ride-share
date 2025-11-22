@@ -306,12 +306,37 @@ This is a community project. Contributions are welcome!
 
 ## Security
 
-- Never commit `.env` files or sensitive credentials
-- All passwords are hashed using bcrypt
-- JWT tokens for authentication
-- Input validation using Pydantic
-- SQL injection protection via SQLAlchemy ORM
-- CORS configuration for frontend access
+**Catholic Ride Share takes security seriously.** This application handles sensitive user data for a non-profit organization serving the Catholic community.
+
+### Security Features
+
+- ✅ All passwords are hashed using bcrypt
+- ✅ JWT tokens for authentication with access and refresh tokens
+- ✅ Email verification for new accounts
+- ✅ Secure password reset flow
+- ✅ Input validation using Pydantic
+- ✅ SQL injection protection via SQLAlchemy ORM
+- ✅ CORS configuration for frontend access
+- ✅ Environment variable management (never commit `.env` files)
+- ✅ Automated security scanning with CodeQL and Dependabot
+
+### Security Documentation
+
+- **[Security Policy](SECURITY.md)** - Vulnerability reporting and security practices
+- **[Repository Security Settings](docs/REPOSITORY_SECURITY_SETTINGS.md)** - Complete security configuration guide
+- **[Branch Protection Setup](docs/BRANCH_PROTECTION_SETUP.md)** - Instructions for protecting branches
+
+### Reporting Security Vulnerabilities
+
+**Do not report security vulnerabilities through public issues.** Please refer to our [Security Policy](SECURITY.md) for instructions on how to report vulnerabilities privately.
+
+### For Contributors
+
+Before contributing, review our security requirements:
+- Read the [Security Policy](SECURITY.md)
+- Complete the [Security Checklist](CONTRIBUTING.md#security-checklist-for-all-prs) for all PRs
+- Never commit secrets, API keys, or credentials
+- Validate and sanitize all user inputs
 
 ## License
 
