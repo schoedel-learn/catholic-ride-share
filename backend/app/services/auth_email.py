@@ -9,6 +9,7 @@ from app.core.redis import get_redis_client
 from app.models.user import User
 from app.services.email import send_email
 from redis import Redis
+from redis.exceptions import RedisError
 
 EMAIL_VERIFICATION_PREFIX = "email_verification"
 PASSWORD_RESET_PREFIX = "password_reset"
