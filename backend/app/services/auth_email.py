@@ -5,11 +5,10 @@ from __future__ import annotations
 import secrets
 from datetime import timedelta
 
-from redis import Redis
-
 from app.core.redis import get_redis_client
 from app.models.user import User
 from app.services.email import send_email
+from redis import Redis
 
 EMAIL_VERIFICATION_PREFIX = "email_verification"
 PASSWORD_RESET_PREFIX = "password_reset"
@@ -93,11 +92,15 @@ def can_request_password_reset(email: str) -> bool:
 def create_password_reset_token(user: User) -> str:
     """Create and store a password reset token for the given user."""
     token = generate_password_reset_token()
+    store_password_reset_token(user, token)
+    return token
+
+
+def store_password_reset_token(user: User, token: str) -> None:
+    """Store (or restore) a password reset token for the given user."""
     redis = _get_redis()
     key = _build_key(PASSWORD_RESET_PREFIX, token)
-
     redis.setex(key, int(PASSWORD_RESET_TTL.total_seconds()), str(user.id))
-    return token
 
 
 def send_password_reset_email(user: User, token: str) -> None:
@@ -127,5 +130,3 @@ def invalidate_reset_token(token: str) -> None:
     redis = _get_redis()
     key = _build_key(PASSWORD_RESET_PREFIX, token)
     redis.delete(key)
-
-

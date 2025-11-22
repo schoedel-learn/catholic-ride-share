@@ -213,6 +213,22 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
             detail="Could not complete password reset. Please try again.",
         )
 
-    db.commit()
+    # Commit the password change. If this fails after the token has been
+    # invalidated, attempt to restore the token so the user can retry.
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        try:
+            auth_email.store_password_reset_token(user, payload.token)
+        except Exception:
+            # Best-effort restoration; if this fails, the user will need
+            # to initiate a new password reset.
+            pass
+
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Could not complete password reset. Please try again.",
+        )
 
     return MessageResponse(message="Password has been reset successfully")
