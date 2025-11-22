@@ -1,0 +1,91 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Source code
+*.py text eol=lf diff=python
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+
+# Scripts
+*.sh text eol=lf
+*.bash text eol=lf
+
+# SQL and database files
+*.sql text eol=lf
+*.mako text eol=lf
+
+# Documentation
+*.md text eol=lf
+*.txt text eol=lf
+*.rst text eol=lf
+
+# Docker files
+Dockerfile text eol=lf
+*.dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+.dockerignore text eol=lf
+
+# Git configuration files
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.cursorrules text eol=lf
+
+# Environment files
+.env* text eol=lf
+*.example text eol=lf
+
+# Web files
+*.html text eol=lf diff=html
+*.css text eol=lf diff=css
+*.scss text eol=lf
+*.sass text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.bz2 binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.otf binary
+
+# Python specific
+*.pyc binary
+*.pyo binary
+*.pyd binary
+*.pkl binary
+*.pickle binary
+
+# Database files
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
+
+# Archives
+*.7z binary
+*.rar binary
+
+# Exclude files from export
+.github/workflows export-ignore
+.gitignore export-ignore
+.gitattributes export-ignore
+tests/ export-ignore
+*.test.* export-ignore
