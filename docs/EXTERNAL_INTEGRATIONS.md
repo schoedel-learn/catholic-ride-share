@@ -8,6 +8,20 @@ External tools like BrainGrid, IDEs, AI assistants, and other GitHub Apps need p
 
 ## File Access Configuration
 
+### GitHub Copilot Instructions
+
+The repository includes `.github/copilot-instructions.md` which provides context and guidelines to GitHub Copilot. This file:
+
+- Explains the project's tech stack and architecture
+- Defines code style standards and best practices
+- Provides common patterns and examples
+- Helps Copilot generate context-aware code suggestions
+- Improves code completion accuracy and relevance
+
+**Location**: `.github/copilot-instructions.md`
+
+GitHub Copilot automatically reads this file to understand project conventions and provide better suggestions.
+
 ### .gitattributes File
 
 The repository includes a `.gitattributes` file that helps external tools properly understand file types, encodings, and line endings. This file ensures:
@@ -131,7 +145,28 @@ file <filename>
 ## Common External Tools
 
 ### Development Tools
-- **VS Code GitHub Copilot**: Requires workspace trust and GitHub authentication
+
+#### GitHub Copilot
+GitHub Copilot is an AI pair programmer that helps write code faster.
+
+**Setup**:
+1. Install GitHub Copilot extension in VS Code or JetBrains IDE
+2. Sign in with your GitHub account (requires Copilot subscription)
+3. Trust the workspace when prompted
+4. Copilot automatically reads `.github/copilot-instructions.md` for context
+
+**Features**:
+- Code completion and suggestions
+- Inline code explanations
+- Generate entire functions from comments
+- Context-aware based on `.github/copilot-instructions.md`
+
+**Best Practices**:
+- Review all suggestions before accepting
+- Use descriptive comments to get better suggestions
+- Keep `.github/copilot-instructions.md` updated with project conventions
+
+#### Other Tools
 - **JetBrains IDEs**: Configure GitHub integration in Settings
 - **BrainGrid**: Requires GitHub App installation with repo access
 
