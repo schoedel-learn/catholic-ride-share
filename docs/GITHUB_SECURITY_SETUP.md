@@ -173,27 +173,24 @@ Provides:
 After enabling security features:
 
 ### 1. Review Initial Alerts
-```bash
-# Check for any existing vulnerabilities
+
+Check for any existing vulnerabilities:
 - Go to Security tab
 - Review Dependabot alerts
 - Review CodeQL alerts
 - Review Secret scanning alerts
-```
 
 ### 2. Configure Notifications
-```bash
-# Personal notification settings
-- GitHub Profile → Settings → Notifications
-- Configure for: Security alerts, Dependabot, CodeQL
-```
+
+Personal notification settings:
+- Go to GitHub Profile → Settings → Notifications
+- Configure notifications for: Security alerts, Dependabot, CodeQL
 
 ### 3. Set Up Team Notifications
-```bash
-# Organization level
-- Organization → Settings → Code security and analysis
+
+Organization level:
+- Go to Organization → Settings → Code security and analysis
 - Configure team assignments for security alerts
-```
 
 ### 4. Establish Security Workflow
 - Assign someone to review security alerts weekly
