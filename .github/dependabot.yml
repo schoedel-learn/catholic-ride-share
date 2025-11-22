@@ -1,0 +1,106 @@
+# Dependabot configuration for automated dependency updates
+# This helps keep dependencies secure and up-to-date
+# Requires Dependency graph to be enabled in repository settings
+
+version: 2
+updates:
+  # Python dependencies (backend)
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+      - "security"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    reviewers:
+      - "schoedel-learn"
+    # Group minor and patch updates together to reduce PR noise
+    groups:
+      fastapi-ecosystem:
+        patterns:
+          - "fastapi*"
+          - "pydantic*"
+          - "uvicorn*"
+      database:
+        patterns:
+          - "sqlalchemy*"
+          - "alembic*"
+          - "psycopg2*"
+          - "geoalchemy2*"
+      aws:
+        patterns:
+          - "boto3*"
+          - "botocore*"
+      testing:
+        patterns:
+          - "pytest*"
+      ai-ml:
+        patterns:
+          - "openai*"
+          - "anthropic*"
+          - "scikit-learn*"
+          - "numpy*"
+      code-quality:
+        patterns:
+          - "black*"
+          - "flake8*"
+          - "mypy*"
+          - "isort*"
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+      - "security"
+    commit-message:
+      prefix: "chore(docker)"
+    reviewers:
+      - "schoedel-learn"
+
+  # Docker Compose
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+      - "security"
+    commit-message:
+      prefix: "chore(docker)"
+    reviewers:
+      - "schoedel-learn"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "security"
+    commit-message:
+      prefix: "chore(ci)"
+    reviewers:
+      - "schoedel-learn"

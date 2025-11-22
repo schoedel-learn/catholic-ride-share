@@ -312,12 +312,20 @@ If you're using external tools like BrainGrid, GitHub Copilot, or other integrat
 
 ## Security
 
-- Never commit `.env` files or sensitive credentials
-- All passwords are hashed using bcrypt
-- JWT tokens for authentication
-- Input validation using Pydantic
-- SQL injection protection via SQLAlchemy ORM
-- CORS configuration for frontend access
+This project takes security seriously. We use multiple layers of protection:
+
+- **GitHub Advanced Security**: CodeQL scanning, secret scanning, and dependency scanning
+- **Automated Updates**: Dependabot monitors and updates vulnerable dependencies
+- **Authentication**: JWT tokens with expiration and secure refresh mechanism
+- **Password Security**: Bcrypt hashing with proper salt
+- **Input Validation**: Pydantic schemas validate all user inputs
+- **SQL Injection Protection**: SQLAlchemy ORM with parameterized queries
+- **Environment Security**: Never commit `.env` files or credentials
+- **CORS Configuration**: Controlled cross-origin resource sharing
+
+For security vulnerabilities, see [SECURITY.md](SECURITY.md) for responsible disclosure.
+
+For setting up GitHub security features, see [GitHub Security Setup Guide](docs/GITHUB_SECURITY_SETUP.md).
 
 ## License
 
