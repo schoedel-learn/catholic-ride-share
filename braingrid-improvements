@@ -1,0 +1,1127 @@
+# Comprehensive Requirements Document Improvement Suggestions
+
+Based on my thorough analysis of the codebase and our discussion, here are the detailed improvements organized by section:
+
+---
+
+## 1. FRONTEND SPECIFICATION (NEW SECTION)
+
+**Add complete Flutter frontend architecture:**
+
+### **Technology Stack**
+```
+Framework: Flutter 3.x (Dart)
+State Management: Riverpod
+HTTP Client: dio (REST API)
+WebSocket: socket_io_client (real-time messaging)
+Maps: google_maps_flutter
+Location: geolocator
+Push Notifications: firebase_messaging
+Payments: flutter_stripe
+Auth Storage: flutter_secure_storage
+Image Handling: image_picker
+UI Components: Material Design 3
+```
+
+### **App Architecture**
+```
+lib/
+├── main.dart
+├── core/
+│   ├── config/          # App configuration, constants
+│   ├── theme/           # App theming, colors
+│   ├── utils/           # Helper functions
+│   └── constants/       # API endpoints, strings
+├── data/
+│   ├── models/          # Data models (User, Ride, etc.)
+│   ├── repositories/    # API communication layer
+│   └── providers/       # Riverpod providers
+├── features/
+│   ├── auth/            # Login, register, email verification
+│   ├── profile/         # User profile, driver profile
+│   ├── rides/           # Ride requests, ride tracking
+│   ├── messaging/       # In-app chat
+│   ├── parishes/        # Parish selection, search
+│   ├── donations/       # Stripe payment flow
+│   └── admin/           # Admin approval workflows
+├── shared/
+│   ├── widgets/         # Reusable UI components
+│   └── services/        # Socket.io, FCM, location services
+└── routes/              # Navigation configuration
+```
+
+### **Key Screens**
+**Authentication Flow:**
+- Splash screen
+- Login screen
+- Registration screen (with role selection)
+- Email verification screen
+- Password reset flow (request → email → reset)
+
+**Rider Flow:**
+- Home/Map screen (request ride)
+- Ride request form (pickup, destination, time, passenger count)
+- Driver selection screen (available drivers list)
+- Active ride tracking screen (real-time map, driver location, status)
+- Ride history
+- In-app messaging (per ride)
+- Donation/review screen (post-ride)
+
+**Driver Flow:**
+- Driver profile setup (vehicle info, documents upload)
+- Verification status screen (pending/approved)
+- Availability management (schedule + toggle)
+- Incoming ride requests (accept/reject)
+- Active ride screen (navigation, status updates)
+- Ride history
+- In-app messaging (per ride)
+- Earnings/statistics
+
+**Shared:**
+- Profile management (photo, info, parish)
+- Parish selection/search
+- Settings
+- Notifications list
+
+**Admin Flow:**
+- Driver applications review
+- Document verification
+- Approve/reject drivers
+- Parish management (CRUD)
+- System monitoring
+
+---
+
+## 2. AUTHENTICATION & USER MANAGEMENT ENHANCEMENTS
+
+**Add missing authentication features:**
+
+### **Email Verification (REQUIRED - Blocking)**
+**User Flow:**
+1. User registers → Account created with `is_verified=false`
+2. System sends verification email with unique token (6-digit code or link)
+3. User cannot request/offer rides until verified
+4. User enters code or clicks link → `is_verified=true`
+5. Verification tokens expire after 24 hours
+6. User can request new verification email
+
+**API Endpoints:**
+- `POST /api/v1/auth/verify-email` - Submit verification code
+- `POST /api/v1/auth/resend-verification` - Request new verification email
+
+**Technical Requirements:**
+- Generate secure random 6-digit code or JWT token
+- Store verification tokens in Redis with 24-hour TTL
+- Send email via SMTP (configured in settings)
+- Block ride-related endpoints for unverified users
+
+### **Password Reset Flow**
+**User Flow:**
+1. User clicks "Forgot Password"
+2. Enters email → System sends reset link/code
+3. User clicks link or enters code
+4. User sets new password
+5. Reset tokens expire after 1 hour
+
+**API Endpoints:**
+- `POST /api/v1/auth/forgot-password` - Request password reset
+- `POST /api/v1/auth/reset-password` - Submit new password with token
+- `POST /api/v1/auth/validate-reset-token` - Check if token is valid
+
+**Technical Requirements:**
+- Generate secure reset tokens (JWT or random string)
+- Store in Redis with 1-hour TTL
+- Invalidate token after successful reset
+- Rate limit: 3 requests per hour per email
+
+### **Profile Photo Upload**
+**User Flow:**
+1. User selects photo from device
+2. App uploads to AWS S3
+3. S3 URL saved to `profile_photo_url` field
+
+**API Endpoints:**
+- `POST /api/v1/users/me/photo` - Upload profile photo
+- `DELETE /api/v1/users/me/photo` - Remove profile photo
+
+**Technical Requirements:**
+- Max file size: 5MB
+- Allowed formats: JPEG, PNG, WebP
+- Image resizing: 500x500px thumbnail
+- S3 bucket with public read access
+- Signed URLs for secure upload
+
+---
+
+## 3. DRIVER PROFILE & VERIFICATION SYSTEM
+
+**Complete driver profile management:**
+
+### **Driver Profile Creation**
+**API Endpoint:**
+- `POST /api/v1/drivers/profile` - Create/update driver profile
+
+**Request Schema (Pydantic):**
+```python
+class DriverProfileCreate(BaseModel):
+    vehicle_make: str
+    vehicle_model: str
+    vehicle_year: int = Field(ge=1990, le=2025)
+    vehicle_color: str
+    license_plate: str
+    vehicle_capacity: int = Field(ge=1, le=8, default=4)
+    
+    # Documents (S3 URLs after upload)
+    drivers_license_url: str
+    insurance_card_url: str
+    vehicle_registration_url: str
+```
+
+**Response Schema:**
+```python
+class DriverProfileResponse(BaseModel):
+    id: int
+    user_id: int
+    vehicle_make: str
+    vehicle_model: str
+    vehicle_year: int
+    vehicle_color: str
+    license_plate: str
+    vehicle_capacity: int
+    insurance_verified: bool
+    background_check_status: str  # pending, in_progress, approved, rejected
+    safe_environment_status: str  # pending, completed, verified
+    is_available: bool
+    total_rides: int
+    average_rating: float
+    created_at: datetime
+```
+
+### **Driver Verification Workflow**
+
+**Status Flow:**
+```
+1. PENDING → Driver submits profile + documents
+2. BACKGROUND_CHECK_INITIATED → Checkr API called
+3. BACKGROUND_CHECK_COMPLETE → Checkr returns results
+4. SAFE_ENVIRONMENT_PENDING → Waiting for training completion
+5. SAFE_ENVIRONMENT_COMPLETED → Driver completed training
+6. ADMIN_REVIEW → Admin reviews all documents
+7. APPROVED → Driver can accept rides
+8. REJECTED → Driver cannot accept rides (with reason)
+```
+
+**New Database Fields (add to DriverProfile model):**
+```python
+# Verification tracking
+background_check_id: str  # Checkr candidate ID
+background_check_status: str  # pending, in_progress, clear, consider, suspended
+background_check_report_url: str  # Checkr report URL
+background_check_completed_at: datetime
+
+safe_environment_status: str  # pending, completed, verified
+safe_environment_completed_at: datetime
+safe_environment_certificate_url: str  # S3 URL
+
+admin_review_status: str  # pending, approved, rejected
+admin_review_notes: str
+admin_reviewed_by: int  # User ID of admin
+admin_reviewed_at: datetime
+
+overall_verification_status: str  # pending, approved, rejected
+```
+
+**API Endpoints:**
+- `POST /api/v1/drivers/profile` - Create driver profile
+- `GET /api/v1/drivers/profile/me` - Get own driver profile
+- `POST /api/v1/drivers/documents/upload` - Upload verification documents
+- `POST /api/v1/drivers/initiate-background-check` - Start Checkr verification
+- `GET /api/v1/drivers/verification-status` - Check verification progress
+
+**Admin Endpoints:**
+- `GET /api/v1/admin/drivers/pending` - List drivers pending approval
+- `GET /api/v1/admin/drivers/{id}` - View driver application details
+- `POST /api/v1/admin/drivers/{id}/approve` - Approve driver
+- `POST /api/v1/admin/drivers/{id}/reject` - Reject driver (with reason)
+- `POST /api/v1/admin/drivers/{id}/request-resubmission` - Request document resubmission
+
+**Checkr Integration:**
+```python
+# Service layer: app/services/background_check.py
+
+class CheckrService:
+    def create_candidate(self, driver_profile: DriverProfile) -> str:
+        """Create Checkr candidate and return candidate_id"""
+        
+    def initiate_background_check(self, candidate_id: str) -> dict:
+        """Start background check (MVR + Criminal)"""
+        
+    def get_report_status(self, candidate_id: str) -> dict:
+        """Check background check status"""
+        
+    def handle_webhook(self, payload: dict):
+        """Process Checkr webhook (status updates)"""
+```
+
+**Checkr Webhook Endpoint:**
+- `POST /api/v1/webhooks/checkr` - Receive background check status updates
+
+---
+
+## 4. DRIVER AVAILABILITY SYSTEM
+
+**Implement hybrid availability management:**
+
+### **Scheduled Availability**
+**Database Schema (new table):**
+```python
+class DriverAvailabilitySchedule(Base):
+    __tablename__ = "driver_availability_schedules"
+    
+    id: int
+    driver_id: int  # FK to users
+    day_of_week: int  # 0=Monday, 6=Sunday
+    start_time: time  # e.g., 08:00
+    end_time: time    # e.g., 12:00
+    is_active: bool   # Can disable without deleting
+    created_at: datetime
+```
+
+**API Endpoints:**
+- `GET /api/v1/drivers/availability/schedule` - Get driver's schedule
+- `POST /api/v1/drivers/availability/schedule` - Add scheduled availability
+- `PUT /api/v1/drivers/availability/schedule/{id}` - Update schedule entry
+- `DELETE /api/v1/drivers/availability/schedule/{id}` - Remove schedule entry
+
+### **Impromptu Availability**
+**Database Schema (new table):**
+```python
+class DriverAvailabilitySession(Base):
+    __tablename__ = "driver_availability_sessions"
+    
+    id: int
+    driver_id: int  # FK to users
+    started_at: datetime
+    expires_at: datetime  # When availability ends
+    is_active: bool
+    ended_at: datetime  # Actual end time
+```
+
+**User Flow:**
+1. Driver opens app
+2. Prompt: "Are you available to give rides right now?"
+3. If yes: "For how long?" (30 min, 1 hour, 2 hours, 4 hours, Until I turn it off)
+4. Driver becomes available immediately
+5. Availability auto-expires or driver manually ends
+
+**API Endpoints:**
+- `POST /api/v1/drivers/availability/start` - Start impromptu availability session
+- `POST /api/v1/drivers/availability/end` - End current session
+- `GET /api/v1/drivers/availability/status` - Check if currently available
+
+**Combined Availability Logic:**
+```python
+def is_driver_available(driver_id: int) -> bool:
+    # Check 1: Is there an active impromptu session?
+    active_session = get_active_session(driver_id)
+    if active_session and active_session.expires_at > now():
+        return True
+    
+    # Check 2: Is current time within scheduled availability?
+    current_day = now().weekday()
+    current_time = now().time()
+    schedule = get_schedule_for_day(driver_id, current_day)
+    if schedule and schedule.start_time <= current_time <= schedule.end_time:
+        return True
+    
+    return False
+```
+
+---
+
+## 5. RIDE REQUEST & MATCHING SYSTEM
+
+**Implement complete ride request workflow:**
+
+### **Ride Request Creation**
+**API Endpoint:**
+- `POST /api/v1/rides/request` - Create ride request
+
+**Request Schema:**
+```python
+class RideRequestCreate(BaseModel):
+    destination_type: DestinationType  # MASS, CONFESSION, PRAYER_EVENT, SOCIAL, OTHER
+    parish_id: Optional[int] = None
+    
+    # Locations (lat/lng)
+    pickup_latitude: float = Field(ge=-90, le=90)
+    pickup_longitude: float = Field(ge=-180, le=180)
+    pickup_address: str  # Human-readable address
+    
+    destination_latitude: float = Field(ge=-90, le=90)
+    destination_longitude: float = Field(ge=-180, le=180)
+    destination_address: str
+    
+    # Timing (immediate rides only - within next 2 hours)
+    requested_datetime: datetime = Field(
+        ge=datetime.utcnow(),
+        le=datetime.utcnow() + timedelta(hours=2)
+    )
+    
+    passenger_count: int = Field(ge=1, le=8, default=1)
+    notes: Optional[str] = Field(max_length=500)
+```
+
+**Response Schema:**
+```python
+class RideRequestResponse(BaseModel):
+    id: int
+    rider_id: int
+    destination_type: DestinationType
+    parish_id: Optional[int]
+    pickup_location: dict  # {"lat": float, "lng": float, "address": str}
+    destination_location: dict
+    requested_datetime: datetime
+    passenger_count: int
+    notes: Optional[str]
+    status: RideRequestStatus
+    available_drivers: List[DriverSummary]  # Drivers within 10 miles
+    created_at: datetime
+```
+
+### **Driver Discovery Algorithm**
+**API Endpoint:**
+- `GET /api/v1/rides/request/{id}/available-drivers` - Get available drivers for request
+
+**Query Logic (PostGIS):**
+```python
+def find_available_drivers(
+    pickup_lat: float,
+    pickup_lng: float,
+    passenger_count: int,
+    max_distance_miles: int = 10
+) -> List[Driver]:
+    """
+    Find available drivers within radius using PostGIS
+    """
+    query = """
+    SELECT 
+        u.id,
+        u.first_name,
+        u.last_name,
+        u.profile_photo_url,
+        dp.vehicle_make,
+        dp.vehicle_model,
+        dp.vehicle_color,
+        dp.vehicle_capacity,
+        dp.average_rating,
+        dp.total_rides,
+        ST_Distance(
+            ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
+            u.last_known_location
+        ) / 1609.34 as distance_miles
+    FROM users u
+    JOIN driver_profiles dp ON u.id = dp.user_id
+    WHERE 
+        u.role IN ('driver', 'both')
+        AND dp.overall_verification_status = 'approved'
+        AND dp.vehicle_capacity >= :passenger_count
+        AND is_driver_available(u.id) = true
+        AND ST_DWithin(
+            ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
+            u.last_known_location,
+            :max_distance_meters
+        )
+    ORDER BY distance_miles ASC
+    LIMIT 20
+    """
+    # Execute query and return results
+```
+
+**New Database Field (add to User model):**
+```python
+last_known_location: Geography(geometry_type='POINT', srid=4326)
+last_location_updated_at: datetime
+```
+
+**Location Update Endpoint:**
+- `POST /api/v1/users/location` - Update driver's current location (called periodically by app)
+
+### **Ride Acceptance/Rejection**
+**API Endpoints:**
+- `POST /api/v1/rides/{ride_request_id}/accept` - Driver accepts ride
+- `POST /api/v1/rides/{ride_request_id}/reject` - Driver rejects ride
+
+**Business Logic:**
+```python
+def accept_ride(ride_request_id: int, driver_id: int):
+    # 1. Check ride request is still PENDING
+    # 2. Check driver is available and verified
+    # 3. Create Ride record (links request to driver)
+    # 4. Update RideRequest status to ACCEPTED
+    # 5. Update DriverProfile is_available to False
+    # 6. Send push notification to rider
+    # 7. Send email notification to rider
+    # 8. Create Socket.io room for messaging
+    # 9. Return ride details
+```
+
+**Ride Expiration:**
+- If no driver accepts within 15 minutes (configurable), mark as EXPIRED
+- Notify rider and suggest creating new request
+- Celery task to check for expired requests
+
+---
+
+## 6. RIDE LIFECYCLE & STATUS MANAGEMENT
+
+**Implement complete ride status workflow:**
+
+### **Status Transitions**
+```
+ACCEPTED → DRIVER_ENROUTE → ARRIVED → PICKED_UP → IN_PROGRESS → COMPLETED
+                                                                 ↓
+                                                            CANCELLED
+```
+
+**API Endpoints:**
+- `POST /api/v1/rides/{id}/start-driving` - Driver en route to pickup (DRIVER_ENROUTE)
+- `POST /api/v1/rides/{id}/arrive` - Driver arrived at pickup (ARRIVED)
+- `POST /api/v1/rides/{id}/pickup` - Rider picked up (PICKED_UP)
+- `POST /api/v1/rides/{id}/start-trip` - Trip started to destination (IN_PROGRESS)
+- `POST /api/v1/rides/{id}/complete` - Trip completed (COMPLETED)
+- `POST /api/v1/rides/{id}/cancel` - Cancel ride (CANCELLED)
+
+**Each status update triggers:**
+1. Database update (Ride.status, timestamps)
+2. Push notification to rider/driver
+3. Socket.io event to both parties
+4. Email notification (for major status changes)
+
+**Cancellation Policy:**
+```python
+class RideCancellation(BaseModel):
+    ride_id: int
+    cancelled_by: str  # "rider" or "driver"
+    reason: str
+    cancellation_fee: Optional[float] = None  # Future: late cancellation fees
+```
+
+**Business Rules:**
+- Rider can cancel anytime before PICKED_UP (no fee in Phase 1)
+- Driver can cancel anytime before PICKED_UP (affects rating)
+- After PICKED_UP, must contact support to cancel
+- Track cancellation rates per user
+
+---
+
+## 7. IN-APP MESSAGING SYSTEM
+
+**Implement Socket.io real-time messaging:**
+
+### **Architecture**
+```
+Flutter App (socket_io_client)
+    ↕ WebSocket
+FastAPI Backend (python-socketio)
+    ↕
+Redis (message queue & pub/sub)
+    ↕
+PostgreSQL (message persistence)
+```
+
+### **Database Schema**
+```python
+class Message(Base):
+    __tablename__ = "messages"
+    
+    id: int
+    ride_id: int  # FK to rides - messages tied to specific ride
+    sender_id: int  # FK to users
+    recipient_id: int  # FK to users
+    content: str  # Max 1000 characters
+    message_type: str  # text, system (e.g., "Driver has arrived")
+    is_read: bool
+    created_at: datetime
+    
+    # Indexes
+    Index('idx_ride_messages', 'ride_id', 'created_at')
+    Index('idx_unread_messages', 'recipient_id', 'is_read')
+```
+
+### **Socket.io Events**
+**Client → Server:**
+- `connect` - Authenticate with JWT token
+- `join_ride` - Join ride-specific room
+- `send_message` - Send message to other party
+- `mark_read` - Mark messages as read
+- `typing` - Typing indicator
+
+**Server → Client:**
+- `message` - New message received
+- `message_sent` - Confirmation message was sent
+- `typing` - Other party is typing
+- `ride_status_update` - Ride status changed
+- `error` - Error occurred
+
+### **API Endpoints (REST fallback)**
+- `GET /api/v1/rides/{ride_id}/messages` - Get message history
+- `POST /api/v1/rides/{ride_id}/messages` - Send message (REST fallback)
+- `PUT /api/v1/messages/{id}/read` - Mark as read
+
+### **Implementation Details**
+```python
+# app/services/messaging.py
+
+from socketio import AsyncServer, ASGIApp
+
+sio = AsyncServer(
+    async_mode='asgi',
+    cors_allowed_origins='*',  # Configure properly in production
+    logger=True,
+    engineio_logger=True
+)
+
+@sio.event
+async def connect(sid, environ, auth):
+    """Authenticate user via JWT token"""
+    token = auth.get('token')
+    user = verify_jwt_token(token)
+    if not user:
+        raise ConnectionRefusedError('Authentication failed')
+    
+    # Store user session
+    await sio.save_session(sid, {'user_id': user.id})
+
+@sio.event
+async def join_ride(sid, data):
+    """Join ride-specific room for messaging"""
+    ride_id = data['ride_id']
+    session = await sio.get_session(sid)
+    user_id = session['user_id']
+    
+    # Verify user is part of this ride
+    ride = get_ride(ride_id)
+    if user_id not in [ride.rider_id, ride.driver_id]:
+        return {'error': 'Not authorized for this ride'}
+    
+    # Join Socket.io room
+    sio.enter_room(sid, f'ride_{ride_id}')
+    
+    # Send message history
+    messages = get_ride_messages(ride_id)
+    return {'messages': messages}
+
+@sio.event
+async def send_message(sid, data):
+    """Send message to other party in ride"""
+    ride_id = data['ride_id']
+    content = data['content']
+    
+    session = await sio.get_session(sid)
+    sender_id = session['user_id']
+    
+    # Get ride and determine recipient
+    ride = get_ride(ride_id)
+    recipient_id = ride.driver_id if sender_id == ride.rider_id else ride.rider_id
+    
+    # Save to database
+    message = create_message(
+        ride_id=ride_id,
+        sender_id=sender_id,
+        recipient_id=recipient_id,
+        content=content
+    )
+    
+    # Emit to ride room
+    await sio.emit('message', {
+        'id': message.id,
+        'sender_id': sender_id,
+        'content': content,
+        'created_at': message.created_at.isoformat()
+    }, room=f'ride_{ride_id}')
+    
+    # Send push notification if recipient offline
+    if not is_user_connected(recipient_id):
+        send_push_notification(recipient_id, f'New message from {get_user_name(sender_id)}')
+```
+
+### **Message Retention Policy**
+- Keep messages for 90 days after ride completion
+- Archive older messages to cold storage
+- Users can export their message history
+
+---
+
+## 8. PUSH NOTIFICATIONS SYSTEM
+
+**Implement Firebase Cloud Messaging:**
+
+### **Setup**
+```python
+# app/services/notifications.py
+
+from firebase_admin import messaging, credentials, initialize_app
+
+# Initialize Firebase Admin SDK
+cred = credentials.Certificate('path/to/serviceAccountKey.json')
+initialize_app(cred)
+
+class NotificationService:
+    def send_push_notification(
+        self,
+        user_id: int,
+        title: str,
+        body: str,
+        data: dict = None
+    ):
+        """Send push notification to user's device(s)"""
+        # Get user's FCM tokens from database
+        tokens = get_user_fcm_tokens(user_id)
+        
+        if not tokens:
+            return  # User has no devices registered
+        
+        message = messaging.MulticastMessage(
+            notification=messaging.Notification(
+                title=title,
+                body=body
+            ),
+            data=data or {},
+            tokens=tokens
+        )
+        
+        response = messaging.send_multicast(message)
+        
+        # Remove invalid tokens
+        if response.failure_count > 0:
+            self._remove_invalid_tokens(tokens, response)
+```
+
+### **Database Schema**
+```python
+class DeviceToken(Base):
+    __tablename__ = "device_tokens"
+    
+    id: int
+    user_id: int  # FK to users
+    fcm_token: str  # Firebase Cloud Messaging token
+    device_type: str  # ios, android, web
+    device_name: Optional[str]
+    is_active: bool
+    created_at: datetime
+    last_used_at: datetime
+```
+
+### **API Endpoints**
+- `POST /api/v1/devices/register` - Register FCM token
+- `DELETE /api/v1/devices/{token}` - Unregister device
+- `GET /api/v1/notifications/preferences` - Get notification settings
+- `PUT /api/v1/notifications/preferences` - Update notification settings
+
+### **Notification Types**
+```python
+class NotificationType(str, enum.Enum):
+    RIDE_ACCEPTED = "ride_accepted"
+    DRIVER_ENROUTE = "driver_enroute"
+    DRIVER_ARRIVED = "driver_arrived"
+    RIDE_STARTED = "ride_started"
+    RIDE_COMPLETED = "ride_completed"
+    RIDE_CANCELLED = "ride_cancelled"
+    NEW_MESSAGE = "new_message"
+    VERIFICATION_APPROVED = "verification_approved"
+    VERIFICATION_REJECTED = "verification_rejected"
+```
+
+### **Notification Preferences**
+```python
+class NotificationPreferences(Base):
+    __tablename__ = "notification_preferences"
+    
+    user_id: int  # PK, FK to users
+    push_enabled: bool = True
+    email_enabled: bool = True
+    
+    # Granular controls
+    ride_updates_push: bool = True
+    ride_updates_email: bool = True
+    messages_push: bool = True
+    messages_email: bool = False
+    marketing_email: bool = False
+```
+
+---
+
+## 9. PARISH MANAGEMENT SYSTEM
+
+**Implement parish CRUD and search:**
+
+### **API Endpoints**
+
+**Public Endpoints:**
+- `GET /api/v1/parishes` - List all parishes (with pagination, search)
+- `GET /api/v1/parishes/{id}` - Get parish details
+- `GET /api/v1/parishes/search` - Search parishes by name, city, zip
+
+**Admin Endpoints:**
+- `POST /api/v1/admin/parishes` - Create parish
+- `PUT /api/v1/admin/parishes/{id}` - Update parish
+- `DELETE /api/v1/admin/parishes/{id}` - Delete parish
+
+### **Request/Response Schemas**
+```python
+class ParishCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    address_line1: str
+    address_line2: Optional[str] = None
+    city: str
+    state: str = Field(min_length=2, max_length=2)  # Two-letter state code
+    zip_code: str = Field(regex=r'^\d{5}(-\d{4})?$')
+    
+    # Contact
+    phone: Optional[str] = Field(regex=r'^\+?1?\d{10,15}$')
+    email: Optional[EmailStr] = None
+    website: Optional[HttpUrl] = None
+    
+    # Geocoding (optional - can be auto-generated from address)
+    latitude: Optional[float] = Field(ge=-90, le=90)
+    longitude: Optional[float] = Field(ge=-180, le=180)
+    
+    # Mass times (JSON structure)
+    mass_times: Optional[List[MassTime]] = None
+
+class MassTime(BaseModel):
+    day: str  # Monday, Tuesday, ..., Sunday
+    time: str  # HH:MM format (e.g., "08:00", "17:30")
+    language: str = "English"
+    mass_type: Optional[str] = None  # e.g., "Traditional Latin Mass"
+
+class ParishResponse(BaseModel):
+    id: int
+    name: str
+    address: str  # Formatted full address
+    city: str
+    state: str
+    zip_code: str
+    location: dict  # {"lat": float, "lng": float}
+    phone: Optional[str]
+    email: Optional[str]
+    website: Optional[str]
+    mass_times: List[MassTime]
+    distance_miles: Optional[float] = None  # If queried with location
+    created_at: datetime
+```
+
+### **Search & Filtering**
+```python
+# Query parameters for GET /api/v1/parishes
+class ParishSearchParams:
+    q: Optional[str] = None  # Search by name
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip_code: Optional[str] = None
+    
+    # Geospatial search
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    radius_miles: Optional[int] = 25  # Default 25 miles
+    
+    # Pagination
+    page: int = 1
+    per_page: int = 20
+```
+
+### **Geocoding Integration**
+```python
+# app/services/geocoding.py
+
+from googlemaps import Client
+
+class GeocodingService:
+    def __init__(self):
+        self.client = Client(key=settings.GOOGLE_MAPS_API_KEY)
+    
+    def geocode_address(self, address: str) -> tuple[float, float]:
+        """Convert address to lat/lng coordinates"""
+        result = self.client.geocode(address)
+        if result:
+            location = result[0]['geometry']['location']
+            return location['lat'], location['lng']
+        raise ValueError('Address not found')
+    
+    def reverse_geocode(self, lat: float, lng: float) -> str:
+        """Convert coordinates to formatted address"""
+        result = self.client.reverse_geocode((lat, lng))
+        if result:
+            return result[0]['formatted_address']
+        raise ValueError('Location not found')
+```
+
+**Auto-geocoding on parish creation:**
+- If lat/lng not provided, geocode from address
+- Store in `location` field as PostGIS POINT
+- Enable distance-based queries
+
+---
+
+## 10. DONATION & REVIEW SYSTEM
+
+**Implement post-ride donation and rating:**
+
+### **User Flow**
+1. Ride completes (status = COMPLETED)
+2. App shows review screen:
+   - Rate driver (1-5 stars)
+   - Optional written review
+   - Optional donation amount
+3. If donation selected, Stripe payment flow
+4. Submit review and donation together
+
+### **Database Schema**
+```python
+class RideReview(Base):
+    __tablename__ = "ride_reviews"
+    
+    id: int
+    ride_id: int  # FK to rides, unique
+    reviewer_id: int  # FK to users (rider)
+    reviewee_id: int  # FK to users (driver)
+    rating: int  # 1-5 stars
+    comment: Optional[str]  # Max 500 characters
+    created_at: datetime
+    
+    Index('idx_driver_reviews', 'reviewee_id', 'rating')
+
+class Donation(Base):
+    __tablename__ = "donations"
+    
+    id: int
+    ride_id: int  # FK to rides
+    donor_id: int  # FK to users (rider)
+    recipient_id: int  # FK to users (driver)
+    amount_cents: int  # Store in cents to avoid float issues
+    currency: str = "USD"
+    
+    # Stripe fields
+    stripe_payment_intent_id: str
+    stripe_charge_id: Optional[str]
+    stripe_status: str  # succeeded, pending, failed
+    
+    # Fees
+    stripe_fee_cents: int  # Stripe's 2.9% + $0.30
+    net_amount_cents: int  # Amount driver receives
+    
+    created_at: datetime
+    completed_at: Optional[datetime]
+```
+
+### **API Endpoints**
+- `POST /api/v1/rides/{ride_id}/review` - Submit review and optional donation
+- `GET /api/v1/drivers/{driver_id}/reviews` - Get driver's reviews
+- `GET /api/v1/users/me/donations` - Get user's donation history
+
+### **Request Schema**
+```python
+class RideReviewCreate(BaseModel):
+    rating: int = Field(ge=1, le=5)
+    comment: Optional[str] = Field(max_length=500)
+    donation_amount: Optional[float] = Field(ge=1.00, le=1000.00)  # USD
+
+class RideReviewResponse(BaseModel):
+    id: int
+    ride_id: int
+    rating: int
+    comment: Optional[str]
+    donation: Optional[DonationResponse]
+    created_at: datetime
+
+class DonationResponse(BaseModel):
+    id: int
+    amount: float  # Convert cents to dollars for display
+    stripe_status: str
+    created_at: datetime
+```
+
+### **Stripe Integration**
+```python
+# app/services/payment.py
+
+import stripe
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+class PaymentService:
+    def create_donation_payment_intent(
+        self,
+        amount_cents: int,
+        donor_id: int,
+        driver_id: int,
+        ride_id: int
+    ) -> str:
+        """Create Stripe PaymentIntent for donation"""
+        
+        # Get or create Stripe customer for donor
+        customer_id = self._get_or_create_customer(donor_id)
+        
+        # Create PaymentIntent
+        intent = stripe.PaymentIntent.create(
+            amount=amount_cents,
+            currency='usd',
+            customer=customer_id,
+            metadata={
+                'ride_id': ride_id,
+                'donor_id': donor_id,
+                'driver_id': driver_id,
+                'type': 'ride_donation'
+            },
+            description=f'Donation for ride #{ride_id}'
+        )
+        
+        return intent.client_secret
+    
+    def handle_webhook(self, payload: bytes, sig_header: str):
+        """Process Stripe webhook events"""
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+            )
+        except ValueError:
+            raise ValueError('Invalid payload')
+        except stripe.error.SignatureVerificationError:
+            raise ValueError('Invalid signature')
+        
+        if event['type'] == 'payment_intent.succeeded':
+            self._handle_payment_success(event['data']['object'])
+        elif event['type'] == 'payment_intent.payment_failed':
+            self._handle_payment_failure(event['data']['object'])
+```
+
+### **Stripe Webhook Endpoint**
+- `POST /api/v1/webhooks/stripe` - Receive payment status updates
+
+### **Driver Rating Calculation**
+```python
+def update_driver_rating(driver_id: int):
+    """Recalculate driver's average rating after new review"""
+    reviews = get_driver_reviews(driver_id)
+    
+    if not reviews:
+        return
+    
+    total_rating = sum(r.rating for r in reviews)
+    average_rating = total_rating / len(reviews)
+    
+    # Update DriverProfile
+    driver_profile = get_driver_profile(driver_id)
+    driver_profile.average_rating = round(average_rating, 2)
+    driver_profile.total_rides = len(reviews)
+    db.commit()
+```
+
+### **Suggested Donation Amounts**
+```python
+# Display in UI after ride completion
+SUGGESTED_DONATIONS = [5.00, 10.00, 15.00, 20.00]  # USD
+
+# Calculate based on distance (future enhancement)
+def suggest_donation_amount(distance_miles: float) -> float:
+    base = 5.00
+    per_mile = 0.50
+    return round(base + (distance_miles * per_mile), 2)
+```
+
+---
+
+## 11. ADMIN DASHBOARD FEATURES
+
+**Add admin-specific functionality:**
+
+### **Admin Endpoints**
+
+**Driver Management:**
+- `GET /api/v1/admin/drivers` - List all drivers (with filters)
+- `GET /api/v1/admin/drivers/pending` - Drivers pending verification
+- `GET /api/v1/admin/drivers/{id}` - View driver details
+- `POST /api/v1/admin/drivers/{id}/approve` - Approve driver
+- `POST /api/v1/admin/drivers/{id}/reject` - Reject driver
+- `POST /api/v1/admin/drivers/{id}/suspend` - Suspend driver account
+- `POST /api/v1/admin/drivers/{id}/reactivate` - Reactivate driver
+
+**User Management:**
+- `GET /api/v1/admin/users` - List all users
+- `GET /api/v1/admin/users/{id}` - View user details
+- `PUT /api/v1/admin/users/{id}` - Update user (admin override)
+- `POST /api/v1/admin/users/{id}/suspend` - Suspend user
+- `POST /api/v1/admin/users/{id}/verify-email` - Manually verify email
+
+**Ride Management:**
+- `GET /api/v1/admin/rides` - List all rides (with filters)
+- `GET /api/v1/admin/rides/{id}` - View ride details
+- `POST /api/v1/admin/rides/{id}/cancel` - Admin cancel ride
+- `GET /api/v1/admin/rides/issues` - Rides with reported issues
+
+**Parish Management:**
+- (Already covered in section 9)
+
+**System Monitoring:**
+- `GET /api/v1/admin/stats/overview` - Dashboard statistics
+- `GET /api/v1/admin/stats/rides` - Ride statistics
+- `GET /api/v1/admin/stats/users` - User statistics
+- `GET /api/v1/admin/stats/revenue` - Donation statistics
+
+### **Statistics Response Example**
+```python
+class AdminDashboardStats(BaseModel):
+    total_users: int
+    total_riders: int
+    total_drivers: int
+    drivers_pending_verification: int
+    
+    total_rides: int
+    rides_today: int
+    rides_this_week: int
+    rides_this_month: int
+    
+    total_donations: float
+    donations_this_month: float
+    average_donation: float
+    
+    average_driver_rating: float
+    active_rides: int
+```
+
+---
+
+## 12. API DOCUMENTATION & ERROR HANDLING
+
+**Standardize API responses and errors:**
+
+### **Standard Response Format**
+```python
+# Success response
+{
+    "success": true,
+    "data": { ... },
+    "message": "Operation completed successfully"
+}
+
+# Error response
+{
+    "success": false,
+    "error": {
+        "code": "VALIDATION_ERROR",
+        "message": "Invalid input data",
+        "details": {
+            "email": ["Invalid email format"],
+            "password": ["Password must be at least 8 characters"]
+        }
+    }
+}
+```
+
+### **Error Codes**
+```python
+class ErrorCode(str, enum.Enum):
+    # Authentication
+    UNAUTHORIZED = "UNAUTHORIZED"
+    INVALID
