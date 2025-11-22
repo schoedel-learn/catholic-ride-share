@@ -699,14 +699,14 @@ We invite parishes to partner with us:
 ### 12.4 Contact Information
 
 **For Stakeholder Inquiries**:
-- Email: stakeholders@catholicrideshare.org (TBD)
-- Documentation: https://github.com/schoedel-learn/catholic-ride-share
-- Security Issues: security@catholicrideshare.org (TBD)
+- GitHub Issues: [Open an issue](https://github.com/schoedel-learn/catholic-ride-share/issues) for questions or discussions
+- Documentation: View this repository's documentation folder
+- Security Issues: Report via GitHub Security Advisories or open a confidential issue
 
 **For Partnership Opportunities**:
-- Parishes/Dioceses: partnerships@catholicrideshare.org (TBD)
-- Legal Counsel: legal@catholicrideshare.org (TBD)
-- Insurance Providers: insurance@catholicrideshare.org (TBD)
+- Use GitHub Issues to express interest in partnerships
+- Direct contact information will be established as the project matures
+- For immediate inquiries, please open a GitHub discussion or issue
 
 ---
 
@@ -715,7 +715,7 @@ We invite parishes to partner with us:
 **Version**: 1.0  
 **Last Updated**: November 2024  
 **Next Review**: Quarterly  
-**Owner**: Catholic Ride Share Governance Board (TBD)
+**Owner**: Project Maintainers (see GitHub repository contributors)
 
 This document is maintained as part of our commitment to transparency and stakeholder communication. For the latest version, please visit our GitHub repository documentation folder.
 
