@@ -85,7 +85,7 @@ At a high level, Catholic Ride Share is:
 
 ### Frontend / Clients
 
-- **Current**: Backend-first; no production frontend yet.
+- **Current**: Backend-first plus a starter Next.js + Tailwind web scaffold in `frontend/` (accessibility-focused, not production-ready).
 - **Planned**:
   - Flutter mobile app (primary client) for riders and drivers.
   - Lightweight web/admin frontend for admins and operations.
@@ -175,12 +175,27 @@ catholic-ride-share/
 - **Alternative API Docs**: http://localhost:8000/redoc
 - **Health Check**: http://localhost:8000/health
 
+### Frontend (Next.js + Tailwind) Preview
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+The scaffold uses the App Router, Tailwind, and accessibility-minded defaults to prototype the web/admin experience.
+
 ## Development
 
 ### Running Tests
 ```bash
 cd backend
 pytest
+```
+
+### Frontend Lint
+```bash
+cd frontend
+npm run lint
 ```
 
 ### Code Quality
