@@ -48,6 +48,13 @@ jobs:
         cd backend
         pip install -r requirements.txt
 
+    - name: Lint (black, isort, flake8)
+      run: |
+        cd backend
+        black --check .
+        isort --check-only .
+        flake8 .
+
     - name: Run tests
       env:
         DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
