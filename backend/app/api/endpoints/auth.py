@@ -3,22 +3,13 @@
 from datetime import timedelta
 
 from app.core.config import settings
-from app.core.security import (
-    create_access_token,
-    create_refresh_token,
-    get_password_hash,
-    verify_password,
-)
+from app.core.security import (create_access_token, create_refresh_token,
+                               get_password_hash, verify_password)
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.auth import (
-    EmailVerificationRequest,
-    ForgotPasswordRequest,
-    MessageResponse,
-    ResendVerificationRequest,
-    ResetPasswordRequest,
-    ValidateResetTokenRequest,
-)
+from app.schemas.auth import (EmailVerificationRequest, ForgotPasswordRequest,
+                              MessageResponse, ResendVerificationRequest,
+                              ResetPasswordRequest, ValidateResetTokenRequest)
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserResponse
 from app.services import auth_email

@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
           password.
         </p>
 
-        <form onSubmit={this} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {error && (
             <div className="rounded-md bg-red-900/40 border border-red-700 px-3 py-2 text-sm text-red-200">
               {error}
