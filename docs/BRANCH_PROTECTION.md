@@ -200,8 +200,8 @@ Branch protection provides several benefits:
 ## Related Documentation
 
 - [CONTRIBUTING.md](../CONTRIBUTING.md): Contributing guidelines
-- [.github/workflows/test.yml](workflows/test.yml): CI test workflow
-- [.github/workflows/deploy.yml](workflows/deploy.yml): Deployment workflow
+- [.github/workflows/test.yml](../.github/workflows/test.yml): CI test workflow
+- [.github/workflows/deploy.yml](../.github/workflows/deploy.yml): Deployment workflow
 
 ## Questions?
 

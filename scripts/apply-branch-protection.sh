@@ -9,13 +9,18 @@
 #
 # Usage:
 #   ./scripts/apply-branch-protection.sh
+#
+# Environment Variables (optional):
+#   GITHUB_OWNER - Repository owner (default: schoedel-learn)
+#   GITHUB_REPO - Repository name (default: catholic-ride-share)
+#   BRANCH - Branch to protect (default: main)
 
 set -e
 
-# Repository details
-OWNER="schoedel-learn"
-REPO="catholic-ride-share"
-BRANCH="main"
+# Repository details (can be overridden via environment variables)
+OWNER="${GITHUB_OWNER:-schoedel-learn}"
+REPO="${GITHUB_REPO:-catholic-ride-share}"
+BRANCH="${BRANCH:-main}"
 
 echo "Applying branch protection settings to ${OWNER}/${REPO}:${BRANCH}..."
 
