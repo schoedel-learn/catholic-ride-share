@@ -1,35 +1,47 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ReactNode } from "react";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "Catholic Ride Share",
-  description: "Connecting the faithful with safe, volunteer rides.",
+  description: "Connecting the faithful with safe, volunteer rides to Mass, Confession, and parish events.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "CRS",
+  },
+  formatDetection: {
+    telephone: true,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#0f172a" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="bg-white text-slate-900">
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased" suppressHydrationWarning>
+    <html lang="en" className="bg-slate-900">
+      <head>
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+      </head>
+      <body 
+        className="min-h-screen bg-slate-900 text-slate-100 antialiased selection:bg-emerald-500/30"
+        suppressHydrationWarning
+      >
         <Providers>
-        <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-10 sm:px-8">
-          <header className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold text-crs-gold uppercase tracking-wide">
-                Catholic Ride Share
-              </p>
-              <h1 className="text-3xl font-bold text-crs-navy">Serving the faithful</h1>
-              <p className="mt-2 text-base text-slate-700">
-                Volunteer drivers helping riders reach Mass, Confession, and parish life.
-              </p>
-            </div>
-          </header>
-          <main>{children}</main>
-          <footer className="border-t border-slate-200 pt-6 text-sm text-slate-600">
-            Built with care for accessibility and community safety.
-          </footer>
-        </div>
+          {children}
         </Providers>
       </body>
     </html>
