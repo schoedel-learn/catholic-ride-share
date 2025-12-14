@@ -9,37 +9,35 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Marian Blue & Gold Palette (WCAG AA/AAA compliant)
-        // Backgrounds
-        ivory: "#F7F5F0",      // Soft ivory - primary background
+        // High Contrast Flat Design Palette
         // Text
-        navy: "#102A43",       // Deep navy - primary text (AAA on white/ivory)
-        // Accents
+        navy: "#0A1628",       // Almost black navy - maximum contrast
+        // Accents - Vibrant, bold colors
         marian: {
-          DEFAULT: "#1E5AA8",  // Marian blue - primary accent
-          50: "#EBF2FA",
-          100: "#D6E4F5",
-          200: "#ADC9EB",
-          300: "#85AEE0",
-          400: "#5C93D6",
-          500: "#1E5AA8",       // Base
-          600: "#1A4E93",
-          700: "#16427E",
-          800: "#123669",
-          900: "#0E2A54",
+          DEFAULT: "#0052CC",  // Vibrant Marian blue
+          50: "#E6F0FF",
+          100: "#CCE0FF",
+          200: "#99C2FF",
+          300: "#66A3FF",
+          400: "#3385FF",
+          500: "#0052CC",       // Base - more saturated
+          600: "#0047B3",
+          700: "#003D99",
+          800: "#003380",
+          900: "#002966",
         },
         gold: {
-          DEFAULT: "#F4B41A",  // Papal gold - secondary accent
-          50: "#FEF9E7",
-          100: "#FDF3CF",
-          200: "#FBE79F",
-          300: "#F9DB6F",
-          400: "#F6C73F",
-          500: "#F4B41A",       // Base
-          600: "#D99C0E",
-          700: "#B5820C",
-          800: "#91680A",
-          900: "#6D4E07",
+          DEFAULT: "#FFB800",  // Bright gold - more vibrant
+          50: "#FFF8E6",
+          100: "#FFF1CC",
+          200: "#FFE499",
+          300: "#FFD666",
+          400: "#FFC933",
+          500: "#FFB800",       // Base - brighter
+          600: "#E6A600",
+          700: "#CC9400",
+          800: "#B38200",
+          900: "#997000",
         },
         // Legacy aliases for compatibility
         "crs-navy": "#102A43",

@@ -9,11 +9,10 @@
   --sar: env(safe-area-inset-right);
   --sab: env(safe-area-inset-bottom);
   --sal: env(safe-area-inset-left);
-  /* Brand colors for CSS usage */
-  --color-ivory: #F7F5F0;
-  --color-navy: #102A43;
-  --color-marian: #1E5AA8;
-  --color-gold: #F4B41A;
+  /* Brand colors for CSS usage - High contrast flat design */
+  --color-navy: #0A1628;
+  --color-marian: #0052CC;
+  --color-gold: #FFB800;
 }
 
 * {

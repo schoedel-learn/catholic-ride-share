@@ -19,8 +19,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#1E5AA8" },
-    { media: "(prefers-color-scheme: dark)", color: "#102A43" },
+    { media: "(prefers-color-scheme: light)", color: "#0052CC" },
+    { media: "(prefers-color-scheme: dark)", color: "#0A1628" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -31,13 +31,13 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="bg-ivory">
+    <html lang="en" className="bg-white">
       <head>
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body 
-        className="min-h-screen bg-ivory text-navy antialiased selection:bg-marian-200"
+        className="min-h-screen bg-white text-navy antialiased selection:bg-gold"
         suppressHydrationWarning
       >
         <Providers>
