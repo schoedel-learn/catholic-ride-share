@@ -129,6 +129,29 @@ export async function register(data: {
   });
 }
 
+// Alias for register (used by register page)
+export const registerUser = register;
+
+// Email verification
+export async function verifyEmail(
+  email: string,
+  code: string
+): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>("/auth/verify-email", {
+    method: "POST",
+    body: JSON.stringify({ email, code }),
+  });
+}
+
+export async function resendVerification(
+  email: string
+): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>("/auth/resend-verification", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
 export async function getCurrentUser(token: string): Promise<User> {
   return apiFetch<User>("/users/me", {
     headers: authHeaders(token),
