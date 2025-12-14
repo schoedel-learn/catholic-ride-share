@@ -294,6 +294,25 @@ Background checks / notifications (future):
 AI (future):
 - `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` - For AI assistant and matching features
 
+## Demo Quickstart
+
+1) Copy env files:
+   - `cp backend/.env.example backend/.env`
+   - `cp frontend/.env.local.example frontend/.env.local`
+   - Update `SECRET_KEY` and any SMTP credentials if you plan to send real email.
+2) Start the stack: `docker compose up --build`
+3) Seed demo data (rider, driver, parishes, sample rides):  
+   `docker compose run --rm backend python app/seed_demo.py`
+4) Frontend: http://localhost:3000  
+   Backend API docs: http://localhost:8000/docs
+5) Demo accounts:  
+   - Rider: `rider.demo@example.com` / `Password123!`  
+   - Driver: `driver.demo@example.com` / `Password123!`
+
+Notes:
+- If SMTP is not configured, verification and reset codes are logged to the backend console for local demos.
+- Redis/Postgres addresses in `.env` are pre-set for docker-compose (`db`, `redis`).
+
 ## Contributing
 
 This is a community project. Contributions are welcome!
