@@ -1,43 +1,38 @@
-import Link from "next/link";
-
-export default function Home() {
+export default function HomePage() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
-      <div className="max-w-xl w-full px-6 py-12 rounded-3xl border border-slate-800 bg-slate-900/70 shadow-xl">
-        <div className="mb-8 text-center">
-          <p className="text-sm font-semibold tracking-wide text-slate-400 uppercase">
-            Welcome to
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-            Catholic Ride Share
-          </h1>
-          <p className="mt-3 text-slate-300">
-            Connect with nearby parishioners for rides to Mass, confession, and
-            parish events. Serve and be served, all from your phone.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-3">
-          <Link
-            href="/login"
-            className="inline-flex items-center justify-center rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/register"
-            className="inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-100 hover:bg-slate-800"
-          >
-            Create an account
-          </Link>
-        </div>
-
-        <p className="mt-6 text-xs text-center text-slate-500">
-          By continuing, you agree to serve others with charity and kindness,
-          reflecting Christ&apos;s love in every journey.
+    <section className="grid gap-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+      <div className="space-y-2">
+        <h2 className="text-2xl font-semibold text-crs-navy">Welcome</h2>
+        <p className="text-slate-700">
+          This is the forthcoming frontend for Catholic Ride Share. Accessibility and responsive
+          design are first-class: typography scales, color contrast meets WCAG, and layout adapts
+          from mobile to desktop.
         </p>
       </div>
-    </main>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-xs">
+          <h3 className="text-lg font-semibold text-crs-navy">Riders</h3>
+          <p className="mt-1 text-sm text-slate-700">
+            Request safe rides to Mass, Confession, and parish events. Clear status updates and
+            privacy-respecting location sharing are coming soon.
+          </p>
+        </article>
+        <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-xs">
+          <h3 className="text-lg font-semibold text-crs-navy">Drivers</h3>
+          <p className="mt-1 text-sm text-slate-700">
+            Offer rides with transparent availability and verification. Tailored flows will help you
+            serve the community with confidence.
+          </p>
+        </article>
+      </div>
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-xs">
+        <h3 className="text-lg font-semibold text-crs-navy">Next steps</h3>
+        <ul className="mt-2 space-y-2 text-sm text-slate-700">
+          <li>• Wire API base URL from env for deployments.</li>
+          <li>• Add auth pages (login/register/reset) with accessible forms.</li>
+          <li>• Build rider/driver dashboards with Tailwind components.</li>
+        </ul>
+      </div>
+    </section>
   );
 }
-

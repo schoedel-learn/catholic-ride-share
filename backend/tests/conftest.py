@@ -4,8 +4,8 @@ from typing import Any, Dict, List, Tuple
 import pytest
 from fastapi.testclient import TestClient
 from geoalchemy2 import Geography
-from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.dialects.sqlite import dialect as sqlite_dialect
+from sqlalchemy.ext.compiler import compiles
 
 # Provide minimal defaults so Settings can initialize during tests without external services.
 os.environ.setdefault("SECRET_KEY", "test-secret-key")
@@ -23,6 +23,7 @@ from app.models import driver_profile, parish, ride, ride_request, user  # noqa:
 @compiles(Geography, "sqlite")
 def compile_geography_sqlite(element, compiler, **kwargs):
     return "TEXT"
+
 
 # Disable spatial indexes for SQLite test runs to avoid missing functions.
 Geography.spatial_index = False

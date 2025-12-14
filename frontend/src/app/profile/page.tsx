@@ -2,7 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { deleteProfilePhoto, updateCurrentUser, uploadProfilePhoto } from "@/lib/api";
+import {
+  deleteProfilePhoto,
+  listParishes,
+  updateCurrentUser,
+  uploadProfilePhoto,
+  type Parish,
+} from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
 export default function ProfilePage() {
@@ -11,10 +17,12 @@ export default function ProfilePage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+  const [parishId, setParishId] = useState("");
   const [saving, setSaving] = useState(false);
   const [photoLoading, setPhotoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [parishes, setParishes] = useState<Parish[]>([]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -25,8 +33,22 @@ export default function ProfilePage() {
       setFirstName(user.first_name);
       setLastName(user.last_name);
       setPhone(user.phone ?? "");
+      setParishId(user.parish_id ? String(user.parish_id) : "");
     }
   }, [loading, user, router]);
+
+  useEffect(() => {
+    const fetchParishes = async () => {
+      try {
+        const data = await listParishes();
+        setParishes(data);
+      } catch (err) {
+        console.warn("Unable to load parishes", err);
+      }
+    };
+
+    void fetchParishes();
+  }, []);
 
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
@@ -39,6 +61,7 @@ export default function ProfilePage() {
         first_name: firstName,
         last_name: lastName,
         phone,
+        parish_id: parishId ? Number(parishId) : undefined,
       });
       setUser(updated);
       setMessage("Profile updated.");
@@ -181,6 +204,28 @@ export default function ProfilePage() {
                 onChange={(e) => setPhone(e.target.value)}
                 className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
+            </div>
+
+            <div>
+              <label
+                htmlFor="parish"
+                className="block text-xs font-medium text-slate-300"
+              >
+                Home parish (optional)
+              </label>
+              <select
+                id="parish"
+                value={parishId}
+                onChange={(e) => setParishId(e.target.value)}
+                className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="">Select parish</option>
+                {parishes.map((parish) => (
+                  <option key={parish.id} value={parish.id}>
+                    {parish.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <button

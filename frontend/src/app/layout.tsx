@@ -1,37 +1,36 @@
-import type { Metadata } from "next";
-import localFont from "next/font/local";
 import "./globals.css";
-import { AuthProvider } from "@/lib/auth";
-
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+import type { Metadata } from "next";
+import { ReactNode } from "react";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "Catholic Ride Share",
-  description:
-    "Community-driven ride-sharing to help Catholics reach Mass and parish events.",
-  manifest: "/manifest.webmanifest",
+  description: "Connecting the faithful with safe, volunteer rides.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-950 text-slate-100`}
-      >
-        <AuthProvider>{children}</AuthProvider>
+    <html lang="en" className="bg-white text-slate-900">
+      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased" suppressHydrationWarning>
+        <Providers>
+        <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-10 sm:px-8">
+          <header className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-crs-gold uppercase tracking-wide">
+                Catholic Ride Share
+              </p>
+              <h1 className="text-3xl font-bold text-crs-navy">Serving the faithful</h1>
+              <p className="mt-2 text-base text-slate-700">
+                Volunteer drivers helping riders reach Mass, Confession, and parish life.
+              </p>
+            </div>
+          </header>
+          <main>{children}</main>
+          <footer className="border-t border-slate-200 pt-6 text-sm text-slate-600">
+            Built with care for accessibility and community safety.
+          </footer>
+        </div>
+        </Providers>
       </body>
     </html>
   );

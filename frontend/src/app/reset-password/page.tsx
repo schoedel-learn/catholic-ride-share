@@ -1,11 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { resetPassword, validateResetToken } from "@/lib/api";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const initialToken = searchParams.get("token") ?? "";
 
@@ -49,7 +49,6 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100">
       <div className="w-full max-w-md px-6 py-10 rounded-2xl border border-slate-800 bg-slate-900/70 shadow-xl">
         <h1 className="text-2xl font-semibold tracking-tight">Reset password</h1>
         <p className="mt-1 text-sm text-slate-400">
@@ -125,8 +124,15 @@ export default function ResetPasswordPage() {
           .
         </p>
       </div>
-    </main>
   );
 }
 
-
+export default function ResetPasswordPage() {
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100">
+      <Suspense fallback={<div className="text-slate-400">Loading...</div>}>
+        <ResetPasswordForm />
+      </Suspense>
+    </main>
+  );
+}

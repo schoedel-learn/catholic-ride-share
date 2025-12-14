@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import logging
 import secrets
 from datetime import timedelta
 
+from app.core.config import settings
 from app.core.redis import get_redis_client
 from app.models.user import User
 from app.services.email import send_email
 from redis import Redis
+
+logger = logging.getLogger(__name__)
 
 EMAIL_VERIFICATION_PREFIX = "email_verification"
 PASSWORD_RESET_PREFIX = "password_reset"
@@ -49,7 +53,15 @@ def send_verification_email(user: User) -> None:
         "If you did not create this account, you can ignore this email.\n"
     )
 
-    send_email(to_email=user.email, subject=subject, body=body)
+    if not settings.SMTP_HOST or not settings.EMAILS_FROM_EMAIL:
+        logger.info("DEV verification code for %s: %s", user.email, code)
+        return
+
+    try:  # pragma: no cover - network boundary
+        send_email(to_email=user.email, subject=subject, body=body)
+    except Exception as exc:  # pragma: no cover - defensive logging
+        logger.warning("Failed to send verification email: %s", exc)
+        # Swallow to avoid blocking registration flows.
 
 
 def verify_email_code(email: str, code: str) -> bool:
@@ -114,7 +126,15 @@ def send_password_reset_email(user: User, token: str) -> None:
         "If you did not request a password reset, you can ignore this email.\n"
     )
 
-    send_email(to_email=user.email, subject=subject, body=body)
+    if not settings.SMTP_HOST or not settings.EMAILS_FROM_EMAIL:
+        logger.info("DEV password reset token for %s: %s", user.email, token)
+        return
+
+    try:  # pragma: no cover - network boundary
+        send_email(to_email=user.email, subject=subject, body=body)
+    except Exception as exc:  # pragma: no cover - defensive logging
+        logger.warning("Failed to send password reset email: %s", exc)
+        raise
 
 
 def get_user_id_from_reset_token(token: str) -> int | None:
