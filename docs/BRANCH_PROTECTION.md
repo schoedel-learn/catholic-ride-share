@@ -67,7 +67,8 @@ Or manually using GitHub CLI:
 
 ```bash
 # Enable branch protection with required checks
-gh api repos/{owner}/{repo}/branches/main/protection \
+# Replace schoedel-learn/catholic-ride-share with your repository
+gh api repos/schoedel-learn/catholic-ride-share/branches/main/protection \
   --method PUT \
   --field required_status_checks='{"strict":true,"contexts":["test"]}' \
   --field enforce_admins=false \

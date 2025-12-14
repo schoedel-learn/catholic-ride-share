@@ -41,7 +41,7 @@ fi
 # Apply branch protection settings
 echo "Configuring branch protection..."
 
-gh api \
+if gh api \
   --method PUT \
   -H "Accept: application/vnd.github+json" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
@@ -52,15 +52,24 @@ gh api \
   -F allow_force_pushes=false \
   -F allow_deletions=false \
   -F required_linear_history=false \
-  -f restrictions=null
-
-echo "✓ Branch protection settings applied successfully!"
-echo ""
-echo "Main branch is now protected with:"
-echo "  - Force pushes disabled"
-echo "  - Branch deletion disabled"
-echo "  - Required status checks: test"
-echo "  - Required approving reviews: 1"
-echo "  - Stale review dismissal enabled"
-echo ""
-echo "View settings at: https://github.com/${OWNER}/${REPO}/settings/branches"
+  -f restrictions=null; then
+  
+  echo "✓ Branch protection settings applied successfully!"
+  echo ""
+  echo "Main branch is now protected with:"
+  echo "  - Force pushes disabled"
+  echo "  - Branch deletion disabled"
+  echo "  - Required status checks: test"
+  echo "  - Required approving reviews: 1"
+  echo "  - Stale review dismissal enabled"
+  echo ""
+  echo "View settings at: https://github.com/${OWNER}/${REPO}/settings/branches"
+else
+  echo "✗ Failed to apply branch protection settings!"
+  echo "Please check:"
+  echo "  - You have admin access to the repository"
+  echo "  - The repository owner and name are correct"
+  echo "  - The branch '${BRANCH}' exists"
+  echo "  - Your GitHub CLI is properly authenticated"
+  exit 1
+fi
