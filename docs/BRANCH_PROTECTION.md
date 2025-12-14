@@ -165,11 +165,11 @@ The branch protection rules integrate with GitHub Actions workflows:
   - Backend linting (black, isort, flake8)
   - Frontend linting (npm run lint)
   
-- **deploy.yml**: Runs on pushes to main
+- **deploy.yml**: Runs after pull requests are merged to main
   - Builds Docker images
   - Deploys to production VPS
 
-Status checks from these workflows are required before merging to `main`.
+Status checks from the test workflow are required before merging to `main`.
 
 ## Benefits
 
