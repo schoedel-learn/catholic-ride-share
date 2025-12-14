@@ -147,6 +147,20 @@ pytest tests/test_auth.py
 3. Changes requested if needed
 4. Approval and merge
 
+## Branch Protection
+
+The `main` branch is protected with the following rules:
+
+- **No force pushes**: Force pushes to main are disabled to preserve history
+- **No deletion**: The main branch cannot be deleted
+- **Required status checks**: All CI tests must pass before merging
+- **Pull request reviews**: At least one approving review is required
+- **Stale review dismissal**: Reviews are dismissed when new commits are pushed
+
+These protections ensure code quality and prevent accidental or malicious changes to the production branch. All changes to `main` must go through pull requests.
+
+Branch protection settings are documented in `.github/settings.yml`.
+
 ## Areas for Contribution
 
 ### High Priority
