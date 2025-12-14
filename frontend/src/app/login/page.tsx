@@ -28,72 +28,81 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100">
-      <div className="w-full max-w-md px-6 py-10 rounded-2xl border border-slate-800 bg-slate-900/70 shadow-xl">
-        <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Welcome back. Please enter your credentials.
-        </p>
+    <main className="min-h-screen flex flex-col bg-white">
+      {/* Header bar */}
+      <header className="bg-marian px-4 py-4">
+        <Link href="/" className="text-lg font-bold text-white uppercase tracking-wide">
+          ← Back
+        </Link>
+      </header>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          {error && (
-            <div className="rounded-md bg-red-900/40 border border-red-700 px-3 py-2 text-sm text-red-200">
-              {error}
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-md">
+          <h1 className="text-3xl font-black text-navy uppercase tracking-wide">Sign In</h1>
+          <p className="mt-2 text-base text-slate-600">
+            Welcome back. Enter your credentials.
+          </p>
+
+          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+            {error && (
+              <div className="border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm text-red-800">
+                {error}
+              </div>
+            )}
+
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-bold text-navy uppercase tracking-wide"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-2 block w-full rounded-none border-2 border-navy bg-white px-4 py-3 text-base text-navy placeholder-slate-400 focus:outline-none focus:border-marian focus:ring-0"
+              />
             </div>
-          )}
 
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-slate-200"
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-bold text-navy uppercase tracking-wide"
+              >
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-2 block w-full rounded-none border-2 border-navy bg-white px-4 py-3 text-base text-navy placeholder-slate-400 focus:outline-none focus:border-marian focus:ring-0"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-none bg-gold px-6 py-4 text-lg font-bold text-navy uppercase tracking-wide transition-colors hover:bg-gold-600 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
+              {loading ? "Signing in..." : "Sign In"}
+            </button>
+          </form>
+
+          <div className="mt-6 flex items-center justify-between text-sm">
+            <Link href="/forgot-password" className="font-medium text-marian hover:underline">
+              Forgot password?
+            </Link>
+            <Link href="/register" className="font-medium text-marian hover:underline">
+              Create account
+            </Link>
           </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-slate-200"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full inline-flex items-center justify-center rounded-md bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-sm hover:bg-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
-          >
-            {loading ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
-
-        <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
-          <Link href="/forgot-password" className="hover:text-slate-200">
-            Forgot your password?
-          </Link>
-          <Link href="/register" className="hover:text-slate-200">
-            Need an account?
-          </Link>
         </div>
       </div>
     </main>

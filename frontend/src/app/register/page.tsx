@@ -45,129 +45,137 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100">
-      <div className="w-full max-w-lg px-6 py-10 rounded-2xl border border-slate-800 bg-slate-900/70 shadow-xl">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Create your account
-        </h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Join Catholic Ride Share as a rider; driver features will be enabled
-          once verification is complete.
-        </p>
+    <main className="min-h-screen flex flex-col bg-white">
+      {/* Header bar */}
+      <header className="bg-marian px-4 py-4">
+        <Link href="/" className="text-lg font-bold text-white uppercase tracking-wide">
+          ← Back
+        </Link>
+      </header>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          {error && (
-            <div className="rounded-md bg-red-900/40 border border-red-700 px-3 py-2 text-sm text-red-200">
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="rounded-md bg-emerald-900/40 border border-emerald-700 px-3 py-2 text-sm text-emerald-200">
-              {success}
-            </div>
-          )}
+      <div className="flex-1 px-4 py-8">
+        <div className="mx-auto w-full max-w-lg">
+          <h1 className="text-3xl font-black text-navy uppercase tracking-wide">
+            Create Account
+          </h1>
+          <p className="mt-2 text-base text-slate-600">
+            Join as a rider. Driver features unlock after verification.
+          </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+            {error && (
+              <div className="border-l-4 border-red-600 bg-red-50 px-4 py-3 text-sm text-red-800">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="border-l-4 border-green-600 bg-green-50 px-4 py-3 text-sm text-green-800">
+                {success}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="first_name"
+                  className="block text-sm font-bold text-navy uppercase tracking-wide"
+                >
+                  First Name
+                </label>
+                <input
+                  id="first_name"
+                  required
+                  value={form.first_name}
+                  onChange={(e) => handleChange("first_name", e.target.value)}
+                  className="mt-2 block w-full rounded-none border-2 border-navy bg-white px-4 py-3 text-base text-navy placeholder-slate-400 focus:outline-none focus:border-marian"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="last_name"
+                  className="block text-sm font-bold text-navy uppercase tracking-wide"
+                >
+                  Last Name
+                </label>
+                <input
+                  id="last_name"
+                  required
+                  value={form.last_name}
+                  onChange={(e) => handleChange("last_name", e.target.value)}
+                  className="mt-2 block w-full rounded-none border-2 border-navy bg-white px-4 py-3 text-base text-navy placeholder-slate-400 focus:outline-none focus:border-marian"
+                />
+              </div>
+            </div>
+
             <div>
               <label
-                htmlFor="first_name"
-                className="block text-sm font-medium text-slate-200"
+                htmlFor="email"
+                className="block text-sm font-bold text-navy uppercase tracking-wide"
               >
-                First name
+                Email
               </label>
               <input
-                id="first_name"
+                id="email"
+                type="email"
+                autoComplete="email"
                 required
-                value={form.first_name}
-                onChange={(e) => handleChange("first_name", e.target.value)}
-                className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                value={form.email}
+                onChange={(e) => handleChange("email", e.target.value)}
+                className="mt-2 block w-full rounded-none border-2 border-navy bg-white px-4 py-3 text-base text-navy placeholder-slate-400 focus:outline-none focus:border-marian"
               />
             </div>
+
             <div>
               <label
-                htmlFor="last_name"
-                className="block text-sm font-medium text-slate-200"
+                htmlFor="phone"
+                className="block text-sm font-bold text-navy uppercase tracking-wide"
               >
-                Last name
+                Phone <span className="font-normal normal-case">(optional)</span>
               </label>
               <input
-                id="last_name"
-                required
-                value={form.last_name}
-                onChange={(e) => handleChange("last_name", e.target.value)}
-                className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                id="phone"
+                type="tel"
+                value={form.phone}
+                onChange={(e) => handleChange("phone", e.target.value)}
+                className="mt-2 block w-full rounded-none border-2 border-navy bg-white px-4 py-3 text-base text-navy placeholder-slate-400 focus:outline-none focus:border-marian"
               />
             </div>
-          </div>
 
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-slate-200"
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-bold text-navy uppercase tracking-wide"
+              >
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                autoComplete="new-password"
+                required
+                minLength={8}
+                value={form.password}
+                onChange={(e) => handleChange("password", e.target.value)}
+                className="mt-2 block w-full rounded-none border-2 border-navy bg-white px-4 py-3 text-base text-navy placeholder-slate-400 focus:outline-none focus:border-marian"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-none bg-gold px-6 py-4 text-lg font-bold text-navy uppercase tracking-wide transition-colors hover:bg-gold-600 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={form.email}
-              onChange={(e) => handleChange("email", e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
+              {loading ? "Creating..." : "Create Account"}
+            </button>
+          </form>
 
-          <div>
-            <label
-              htmlFor="phone"
-              className="block text-sm font-medium text-slate-200"
-            >
-              Phone (optional)
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              value={form.phone}
-              onChange={(e) => handleChange("phone", e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-slate-200"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={8}
-              value={form.password}
-              onChange={(e) => handleChange("password", e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full inline-flex items-center justify-center rounded-md bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-sm hover:bg-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
-          >
-            {loading ? "Creating account..." : "Create account"}
-          </button>
-        </form>
-
-        <p className="mt-4 text-xs text-slate-400">
-          Already have an account?{" "}
-          <Link href="/login" className="text-emerald-400 hover:text-emerald-300">
-            Sign in
-          </Link>
-        </p>
+          <p className="mt-6 text-sm text-slate-600">
+            Already have an account?{" "}
+            <Link href="/login" className="font-medium text-marian hover:underline">
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
     </main>
   );

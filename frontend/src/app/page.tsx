@@ -24,7 +24,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-sm space-y-4">
           <Link
             href="/login"
-            className="flex w-full items-center justify-center gap-3 rounded-none bg-navy px-6 py-5 text-xl font-bold text-white uppercase tracking-wide transition-colors hover:bg-black active:bg-black"
+            className="flex w-full items-center justify-center gap-3 rounded-none bg-gold px-6 py-5 text-xl font-bold text-navy uppercase tracking-wide transition-colors hover:bg-gold-600 active:bg-gold-600"
           >
             Sign In
           </Link>
@@ -34,13 +34,6 @@ export default function HomePage() {
             className="flex w-full items-center justify-center gap-3 rounded-none border-4 border-navy bg-white px-6 py-5 text-xl font-bold text-navy uppercase tracking-wide transition-colors hover:bg-navy hover:text-white active:bg-navy active:text-white"
           >
             Create Account
-          </Link>
-
-          <Link
-            href="/dashboard"
-            className="flex w-full items-center justify-center gap-3 rounded-none bg-gold px-6 py-5 text-xl font-bold text-navy uppercase tracking-wide transition-colors hover:bg-gold-600 active:bg-gold-600"
-          >
-            Dashboard
           </Link>
         </div>
 
