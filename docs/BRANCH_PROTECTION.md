@@ -26,7 +26,7 @@ The `main` branch is the production branch and is protected with the following r
 3. **Require Status Checks Before Merging**
    - All CI/CD tests must pass before code can be merged
    - Required checks include:
-     - **test**: Backend and frontend test suite (Python + npm tests)
+     - **test**: Backend tests (pytest) and frontend/backend linting
    - Status checks must be up-to-date with the base branch (strict mode)
 
 4. **Require Pull Request Reviews**
@@ -162,8 +162,8 @@ The branch protection rules integrate with GitHub Actions workflows:
 
 - **test.yml**: Runs on all pushes and pull requests
   - Backend tests (pytest)
-  - Frontend tests (npm test)
-  - Linting (black, isort, flake8, eslint)
+  - Backend linting (black, isort, flake8)
+  - Frontend linting (npm run lint)
   
 - **deploy.yml**: Runs on pushes to main
   - Builds Docker images
