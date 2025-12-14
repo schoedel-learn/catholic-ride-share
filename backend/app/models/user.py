@@ -8,7 +8,7 @@ from typing import Optional
 
 from app.db.session import Base
 from geoalchemy2 import Geography
-from sqlalchemy import Boolean, DateTime, Enum, Integer, String
+from sqlalchemy import Boolean, DateTime, Enum, Float, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
@@ -42,6 +42,21 @@ class User(Base):
 
     parish_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     profile_photo_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+
+    # Stripe / donations
+    stripe_customer_id: Mapped[Optional[str]] = mapped_column(
+        String, unique=True, index=True, nullable=True
+    )
+    auto_donation_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    auto_donation_type: Mapped[str] = mapped_column(
+        Enum("fixed", "distance_based", name="autodonationtype"),
+        default="fixed",
+        nullable=False,
+    )
+    # When auto_donation_type == "fixed"
+    auto_donation_amount_cents: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    # When auto_donation_type == "distance_based" (dollars per mile)
+    auto_donation_multiplier: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

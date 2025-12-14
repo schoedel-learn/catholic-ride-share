@@ -9,12 +9,14 @@ from app.db.session import get_db
 from app.models.ride import Ride, RideStatus
 from app.models.ride_request import RideRequest, RideRequestStatus
 from app.models.user import User, UserRole
+from app.schemas.donation import DonationIntentResponse
 from app.schemas.ride import (
     RideAcceptResponse,
     RideRequestCreate,
     RideRequestResponse,
     RideStatusUpdate,
 )
+from app.services.payment import PaymentService, StripeNotConfiguredError
 from fastapi import APIRouter, Depends, HTTPException, status
 from geoalchemy2 import WKTElement
 from sqlalchemy.orm import Session
@@ -41,12 +43,18 @@ def list_my_ride_requests(
     current_user: User = Depends(get_current_verified_user),
 ):
     """List ride requests created by the current user."""
-    return (
-        db.query(RideRequest)
+    rows = (
+        db.query(RideRequest, Ride.id.label("ride_id"))
+        .outerjoin(Ride, Ride.ride_request_id == RideRequest.id)
         .filter(RideRequest.rider_id == current_user.id)
         .order_by(RideRequest.created_at.desc())
         .all()
     )
+    results: list[RideRequest] = []
+    for ride_request, ride_id in rows:
+        setattr(ride_request, "ride_id", ride_id)
+        results.append(ride_request)
+    return results
 
 
 @router.get("/open", response_model=list[RideRequestResponse])
@@ -199,7 +207,77 @@ def update_ride_status(
         elif payload.status == RideStatus.CANCELLED:
             ride_request.status = RideRequestStatus.CANCELLED
 
+    if payload.status == RideStatus.COMPLETED:
+        ride.completed_at = datetime.utcnow()
+
     db.commit()
     db.refresh(ride)
 
-    return ride
+    auto_donation_intent: DonationIntentResponse | None = None
+
+    # Auto-donation is based on the rider's preference, so we create the PaymentIntent
+    # and persist the client_secret on the Donation record for the rider app to confirm.
+    if payload.status == RideStatus.COMPLETED:
+        rider = db.query(User).filter(User.id == ride.rider_id).first()
+        if rider and rider.auto_donation_enabled:
+            amount_cents: int | None = None
+            if rider.auto_donation_type == "fixed":
+                amount_cents = rider.auto_donation_amount_cents or None
+            else:
+                try:
+                    payment = PaymentService()
+                    distance_miles = payment.get_ride_distance_miles(db, ride_id=ride.id) or 0.0
+                    multiplier = rider.auto_donation_multiplier or 0.5  # USD per mile
+                    amount = 5.0 + (distance_miles * multiplier)
+                    amount_cents = max(100, min(100_000, int(round(amount * 100))))
+                    intent = payment.create_donation_payment_intent(
+                        db,
+                        amount_cents=amount_cents,
+                        donor=rider,
+                        ride_id=ride.id,
+                        driver_id=ride.driver_id,
+                    )
+                    auto_donation_intent = DonationIntentResponse(
+                        payment_intent_id=intent.payment_intent_id,
+                        client_secret=intent.client_secret,
+                        amount=intent.amount_cents / 100.0,
+                        currency="USD",
+                    )
+                except StripeNotConfiguredError:
+                    auto_donation_intent = None
+                except Exception:
+                    # Don't block ride completion if donations fail.
+                    auto_donation_intent = None
+
+            if amount_cents and rider.auto_donation_type == "fixed":
+                try:
+                    payment = PaymentService()
+                    intent = payment.create_donation_payment_intent(
+                        db,
+                        amount_cents=amount_cents,
+                        donor=rider,
+                        ride_id=ride.id,
+                        driver_id=ride.driver_id,
+                    )
+                    auto_donation_intent = DonationIntentResponse(
+                        payment_intent_id=intent.payment_intent_id,
+                        client_secret=intent.client_secret,
+                        amount=intent.amount_cents / 100.0,
+                        currency="USD",
+                    )
+                except StripeNotConfiguredError:
+                    auto_donation_intent = None
+                except Exception:
+                    auto_donation_intent = None
+
+    return RideAcceptResponse.model_validate(
+        {
+            "id": ride.id,
+            "ride_request_id": ride.ride_request_id,
+            "driver_id": ride.driver_id,
+            "rider_id": ride.rider_id,
+            "status": ride.status,
+            "accepted_at": ride.accepted_at,
+            "auto_donation_intent": auto_donation_intent,
+        }
+    )

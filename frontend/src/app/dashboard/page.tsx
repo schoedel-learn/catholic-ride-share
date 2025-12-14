@@ -6,17 +6,24 @@ import { useEffect, useMemo, useState } from "react";
 import {
   createRideRequest,
   acceptRideRequest,
+  createRideDonationIntent,
+  getDonationPreferences,
+  getRideDonationIntent,
   listAssignedRides,
   listMyRideRequests,
   listOpenRideRequests,
   listParishes,
+  submitRideReview,
   updateRideStatus,
   updateLocation,
+  type DonationIntent,
+  type DonationPreferences,
   type Parish,
   type Ride,
   type RideRequest,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { DonationModal } from "@/components/DonationModal";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -35,6 +42,16 @@ export default function DashboardPage() {
   const [driverError, setDriverError] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<number | null>(null);
   const [statusUpdating, setStatusUpdating] = useState<number | null>(null);
+  const [donationPrefs, setDonationPrefs] = useState<DonationPreferences | null>(null);
+  const [donationIntent, setDonationIntent] = useState<DonationIntent | null>(null);
+  const [donationModalOpen, setDonationModalOpen] = useState(false);
+  const [donationRideId, setDonationRideId] = useState<number | null>(null);
+  const [donationError, setDonationError] = useState<string | null>(null);
+  const [autoDonationPrompted, setAutoDonationPrompted] = useState<Record<number, boolean>>({});
+  const [reviewDrafts, setReviewDrafts] = useState<
+    Record<number, { rating: number; comment: string; donationAmount: string }>
+  >({});
+  const [reviewSubmittingId, setReviewSubmittingId] = useState<number | null>(null);
   const [form, setForm] = useState({
     pickupLat: "37.7749",
     pickupLng: "-122.4194",
@@ -124,6 +141,87 @@ export default function DashboardPage() {
     () => user?.role === "driver" || user?.role === "both" || user?.role === "admin",
     [user]
   );
+
+  useEffect(() => {
+    if (!token || !isRider) return;
+    const loadDonationPrefs = async () => {
+      try {
+        const prefs = await getDonationPreferences(token);
+        setDonationPrefs(prefs);
+      } catch (err) {
+        console.warn("Unable to load donation preferences", err);
+      }
+    };
+    void loadDonationPrefs();
+  }, [token, isRider]);
+
+  const openDonationFlow = async (rideId: number, donationAmount?: number) => {
+    if (!token) return;
+    setDonationError(null);
+    setDonationRideId(rideId);
+    setDonationIntent(null);
+    setDonationModalOpen(true);
+
+    try {
+      const existing = await getRideDonationIntent(token, rideId);
+      setDonationIntent(existing);
+      return;
+    } catch {
+      // Fall through and try creating a new one.
+    }
+
+    try {
+      const fallbackAmount =
+        donationAmount ??
+        (donationPrefs?.auto_donation_type === "fixed" && donationPrefs.auto_donation_amount
+          ? donationPrefs.auto_donation_amount
+          : 10);
+      const created = await createRideDonationIntent(token, rideId, fallbackAmount);
+      setDonationIntent(created);
+    } catch (err) {
+      setDonationError((err as Error).message || "Unable to prepare donation.");
+      setDonationModalOpen(false);
+    }
+  };
+
+  const handleSubmitReview = async (rideId: number) => {
+    if (!token) return;
+    const draft = reviewDrafts[rideId] ?? { rating: 5, comment: "", donationAmount: "" };
+    const donation_amount = draft.donationAmount ? Number(draft.donationAmount) : undefined;
+    setReviewSubmittingId(rideId);
+    setRequestError(null);
+    setRequestMessage(null);
+    try {
+      const resp = await submitRideReview(token, rideId, {
+        rating: draft.rating,
+        comment: draft.comment || undefined,
+        donation_amount,
+      });
+      setRequestMessage("Review submitted. Thank you!");
+      if (resp.donation_intent) {
+        setDonationRideId(rideId);
+        setDonationIntent(resp.donation_intent);
+        setDonationModalOpen(true);
+      }
+    } catch (err) {
+      setRequestError((err as Error).message || "Unable to submit review.");
+    } finally {
+      setReviewSubmittingId(null);
+    }
+  };
+
+  useEffect(() => {
+    if (!token || !isRider || !donationPrefs?.auto_donation_enabled) return;
+    const next = myRequests.find(
+      (req) =>
+        req.status === "completed" && !!req.ride_id && !autoDonationPrompted[req.ride_id]
+    );
+    if (!next?.ride_id) return;
+
+    setAutoDonationPrompted((prev) => ({ ...prev, [next.ride_id as number]: true }));
+    void openDonationFlow(next.ride_id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, isRider, donationPrefs, myRequests]);
 
   useEffect(() => {
     if (!token || !isDriver) return;
@@ -242,6 +340,14 @@ export default function DashboardPage() {
             your upcoming trips.
           </p>
         </header>
+        {donationError && (
+          <div
+            className="rounded-md bg-red-900/30 border border-red-700 px-3 py-2 text-xs text-red-200"
+            role="alert"
+          >
+            {donationError}
+          </div>
+        )}
 
         <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 space-y-3">
           <div className="flex items-center justify-between gap-2">
@@ -459,6 +565,118 @@ export default function DashboardPage() {
                       {req.notes && (
                         <p className="mt-1 text-[11px] text-slate-300">{req.notes}</p>
                       )}
+                      {req.status === "completed" && req.ride_id ? (
+                        <div className="mt-3 rounded-md border border-slate-800 bg-slate-950/40 p-3 space-y-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-xs font-semibold text-slate-200">
+                                Support the app (optional)
+                              </p>
+                              <p className="mt-1 text-[11px] text-slate-400">
+                                If you’d like, you can leave a review and optionally donate for this
+                                ride.
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => openDonationFlow(req.ride_id as number)}
+                              className="shrink-0 rounded-md bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-emerald-400"
+                            >
+                              Donate
+                            </button>
+                          </div>
+
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <div>
+                              <label className="block text-[11px] font-medium text-slate-300">
+                                Rating
+                              </label>
+                              <select
+                                value={(reviewDrafts[req.ride_id]?.rating ?? 5).toString()}
+                                onChange={(e) =>
+                                  setReviewDrafts((prev) => ({
+                                    ...prev,
+                                    [req.ride_id as number]: {
+                                      rating: Number(e.target.value),
+                                      comment: prev[req.ride_id as number]?.comment ?? "",
+                                      donationAmount:
+                                        prev[req.ride_id as number]?.donationAmount ?? "",
+                                    },
+                                  }))
+                                }
+                                className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              >
+                                {[5, 4, 3, 2, 1].map((n) => (
+                                  <option key={n} value={n}>
+                                    {n}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-medium text-slate-300">
+                                Donation amount (USD, optional)
+                              </label>
+                              <input
+                                inputMode="decimal"
+                                value={reviewDrafts[req.ride_id]?.donationAmount ?? ""}
+                                onChange={(e) =>
+                                  setReviewDrafts((prev) => ({
+                                    ...prev,
+                                    [req.ride_id as number]: {
+                                      rating: prev[req.ride_id as number]?.rating ?? 5,
+                                      comment: prev[req.ride_id as number]?.comment ?? "",
+                                      donationAmount: e.target.value,
+                                    },
+                                  }))
+                                }
+                                placeholder={
+                                  donationPrefs?.auto_donation_type === "fixed" &&
+                                  donationPrefs.auto_donation_amount
+                                    ? String(donationPrefs.auto_donation_amount)
+                                    : "e.g. 10"
+                                }
+                                className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-medium text-slate-300">
+                              Comment (optional)
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={reviewDrafts[req.ride_id]?.comment ?? ""}
+                              onChange={(e) =>
+                                setReviewDrafts((prev) => ({
+                                  ...prev,
+                                  [req.ride_id as number]: {
+                                    rating: prev[req.ride_id as number]?.rating ?? 5,
+                                    comment: e.target.value,
+                                    donationAmount: prev[req.ride_id as number]?.donationAmount ?? "",
+                                  },
+                                }))
+                              }
+                              className="mt-1 block w-full rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              placeholder="Share a short note (optional)"
+                            />
+                          </div>
+
+                          <div className="flex items-center justify-end">
+                            <button
+                              type="button"
+                              onClick={() => handleSubmitReview(req.ride_id as number)}
+                              disabled={reviewSubmittingId === req.ride_id}
+                              className="rounded-md border border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                              {reviewSubmittingId === req.ride_id
+                                ? "Submitting…"
+                                : "Submit review (and optional donation)"}
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
                     </li>
                   ))}
                 </ul>
@@ -623,6 +841,21 @@ export default function DashboardPage() {
           </ul>
         </section>
       </div>
+
+      <DonationModal
+        open={donationModalOpen}
+        intent={donationIntent}
+        title="Support the app"
+        onClose={() => {
+          setDonationModalOpen(false);
+          setDonationIntent(null);
+        }}
+        onSuccess={() => {
+          setRequestMessage(
+            donationRideId ? `Donation submitted for ride #${donationRideId}. Thank you!` : "Donation submitted. Thank you!"
+          );
+        }}
+      />
     </main>
   );
 }

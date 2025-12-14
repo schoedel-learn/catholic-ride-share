@@ -7,6 +7,7 @@ from typing import Optional
 
 from app.models.ride import RideStatus
 from app.models.ride_request import DestinationType, RideRequestStatus
+from app.schemas.donation import DonationIntentResponse
 from pydantic import BaseModel, Field
 
 
@@ -33,6 +34,7 @@ class RideRequestResponse(BaseModel):
     """Ride request response payload."""
 
     id: int
+    ride_id: Optional[int] = None
     rider_id: int
     destination_type: DestinationType
     parish_id: Optional[int]
@@ -56,6 +58,7 @@ class RideAcceptResponse(BaseModel):
     rider_id: int
     status: RideStatus
     accepted_at: datetime
+    auto_donation_intent: Optional[DonationIntentResponse] = None
 
     class Config:
         from_attributes = True

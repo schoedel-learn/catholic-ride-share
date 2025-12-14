@@ -34,11 +34,8 @@ export interface Parish {
 
 export interface RideRequest {
   id: number;
+  ride_id?: number | null;
   rider_id: number;
-  pickup_latitude: number;
-  pickup_longitude: number;
-  dropoff_latitude: number;
-  dropoff_longitude: number;
   destination_type: "mass" | "confession" | "prayer_event" | "social" | "other";
   parish_id?: number | null;
   requested_datetime: string;
@@ -47,6 +44,49 @@ export interface RideRequest {
   status: "pending" | "accepted" | "in_progress" | "completed" | "cancelled";
   created_at: string;
   updated_at: string;
+}
+
+export interface DonationIntent {
+  payment_intent_id: string;
+  client_secret: string;
+  amount: number;
+  currency: string;
+}
+
+export interface Donation {
+  id: number;
+  ride_id: number;
+  amount: number;
+  currency: string;
+  stripe_status: string;
+  created_at: string;
+  completed_at?: string | null;
+  stripe_fee_cents: number;
+  net_amount_cents: number;
+}
+
+export interface DonationPreferences {
+  auto_donation_enabled: boolean;
+  auto_donation_type: "fixed" | "distance_based";
+  auto_donation_amount?: number | null;
+  auto_donation_multiplier?: number | null;
+}
+
+export interface DonationPreferencesUpdate {
+  auto_donation_enabled?: boolean;
+  auto_donation_type?: "fixed" | "distance_based";
+  auto_donation_amount?: number | null;
+  auto_donation_multiplier?: number | null;
+}
+
+export interface RideReviewResponse {
+  id: number;
+  ride_id: number;
+  rating: number;
+  comment?: string | null;
+  created_at: string;
+  donation?: Donation | null;
+  donation_intent?: DonationIntent | null;
 }
 
 export interface Ride {
@@ -63,7 +103,7 @@ export interface Ride {
     | "completed"
     | "cancelled";
   accepted_at: string;
-  started_at?: string | null;
+  auto_donation_intent?: DonationIntent | null;
   completed_at?: string | null;
 }
 
@@ -259,7 +299,7 @@ export async function createRideRequest(
     passenger_count: number;
   }
 ): Promise<RideRequest> {
-  return apiFetch<RideRequest>("/rides/requests", {
+  return apiFetch<RideRequest>("/rides/", {
     method: "POST",
     headers: authHeaders(token),
     body: JSON.stringify(data),
@@ -267,7 +307,7 @@ export async function createRideRequest(
 }
 
 export async function listMyRideRequests(token: string): Promise<RideRequest[]> {
-  return apiFetch<RideRequest[]>("/rides/requests/my", {
+  return apiFetch<RideRequest[]>("/rides/mine", {
     headers: authHeaders(token),
   });
 }
@@ -275,7 +315,7 @@ export async function listMyRideRequests(token: string): Promise<RideRequest[]> 
 export async function listOpenRideRequests(
   token: string
 ): Promise<RideRequest[]> {
-  return apiFetch<RideRequest[]>("/rides/requests/open", {
+  return apiFetch<RideRequest[]>("/rides/open", {
     headers: authHeaders(token),
   });
 }
@@ -285,7 +325,7 @@ export async function acceptRideRequest(
   token: string,
   rideRequestId: number
 ): Promise<Ride> {
-  return apiFetch<Ride>(`/rides/requests/${rideRequestId}/accept`, {
+  return apiFetch<Ride>(`/rides/${rideRequestId}/accept`, {
     method: "POST",
     headers: authHeaders(token),
   });
@@ -303,8 +343,71 @@ export async function updateRideStatus(
   status: Ride["status"]
 ): Promise<Ride> {
   return apiFetch<Ride>(`/rides/${rideId}/status`, {
-    method: "PUT",
+    method: "PATCH",
     headers: authHeaders(token),
     body: JSON.stringify({ status }),
+  });
+}
+
+// Donations / reviews
+export async function getDonationPreferences(
+  token: string
+): Promise<DonationPreferences> {
+  return apiFetch<DonationPreferences>("/users/me/donation-preferences", {
+    headers: authHeaders(token),
+  });
+}
+
+export async function updateDonationPreferences(
+  token: string,
+  data: DonationPreferencesUpdate
+): Promise<DonationPreferences> {
+  return apiFetch<DonationPreferences>("/users/me/donation-preferences", {
+    method: "PUT",
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+}
+
+export async function listMyDonations(token: string): Promise<Donation[]> {
+  return apiFetch<Donation[]>("/users/me/donations", {
+    headers: authHeaders(token),
+  });
+}
+
+export async function createRideDonationIntent(
+  token: string,
+  rideId: number,
+  donationAmount: number
+): Promise<DonationIntent> {
+  return apiFetch<DonationIntent>(`/rides/${rideId}/donate`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ donation_amount: donationAmount }),
+  });
+}
+
+export async function getRideDonationIntent(
+  token: string,
+  rideId: number
+): Promise<DonationIntent> {
+  return apiFetch<DonationIntent>(`/rides/${rideId}/donation-intent`, {
+    headers: authHeaders(token),
+  });
+}
+
+export async function submitRideReview(
+  token: string,
+  rideId: number,
+  data: {
+    rating: number;
+    comment?: string;
+    donation_amount?: number;
+  }
+): Promise<RideReviewResponse> {
+  return apiFetch<RideReviewResponse>(`/rides/${rideId}/review`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
   });
 }
