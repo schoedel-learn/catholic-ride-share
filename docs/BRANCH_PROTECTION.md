@@ -56,6 +56,15 @@ Branch protection settings are documented in `.github/settings.yml`. This file c
 
 ### Using GitHub CLI
 
+A helper script is provided to apply branch protection settings automatically:
+
+```bash
+# Run the script from the repository root
+./scripts/apply-branch-protection.sh
+```
+
+Or manually using GitHub CLI:
+
 ```bash
 # Enable branch protection with required checks
 gh api repos/{owner}/{repo}/branches/main/protection \
