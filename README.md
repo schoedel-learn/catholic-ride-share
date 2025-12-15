@@ -325,6 +325,8 @@ This is a community project. Contributions are welcome!
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
+**Note**: The `main` branch is protected and requires pull request reviews and passing CI tests before merging. See [Branch Protection Documentation](docs/BRANCH_PROTECTION.md) for details.
+
 ## External Integrations
 
 If you're using external tools like BrainGrid, GitHub Copilot, or other integrations with this repository, please see the [External Integrations Guide](docs/EXTERNAL_INTEGRATIONS.md) for setup instructions and troubleshooting.
