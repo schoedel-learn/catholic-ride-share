@@ -1,8 +1,10 @@
 import os
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import pytest
 from fastapi.testclient import TestClient
+from geoalchemy2 import Geography
+from sqlalchemy.ext.compiler import compiles
 
 # Provide minimal defaults so Settings can initialize during tests without external services.
 os.environ.setdefault("SECRET_KEY", "test-secret-key")
@@ -14,6 +16,20 @@ from app.main import app  # noqa: E402
 
 # Import models so metadata is aware for table creation.
 from app.models import driver_profile, parish, ride, ride_request, user  # noqa: F401, E402
+
+# Check if we're using SQLite (for local dev) or PostgreSQL (for CI)
+_is_sqlite = "sqlite" in os.environ.get("DATABASE_URL", "sqlite")
+
+
+# SQLite does not support PostGIS types; compile Geography to TEXT for tests.
+@compiles(Geography, "sqlite")
+def compile_geography_sqlite(element, compiler, **kwargs):
+    return "TEXT"
+
+
+# Disable spatial indexes for SQLite test runs to avoid missing functions.
+if _is_sqlite:
+    Geography.spatial_index = False
 
 
 class _FakePipeline:
@@ -66,7 +82,17 @@ class FakeRedis:
 
 @pytest.fixture(autouse=True)
 def _db_setup():
-    """Ensure a clean sqlite schema for each test session."""
+    """Ensure a clean schema for each test session."""
+    from sqlalchemy import String
+
+    # Replace PostGIS types with simple strings for SQLite test DB only.
+    if _is_sqlite:
+        for table in Base.metadata.tables.values():
+            for column in table.c:
+                if isinstance(column.type, Geography):
+                    column.type = String()
+                    column.type.spatial_index = False
+
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     yield
@@ -78,9 +104,29 @@ def _db_setup():
 def fake_redis(monkeypatch):
     """Patch Redis client used in rate limiting and email flows."""
     client = FakeRedis()
-    monkeypatch.setattr("app.core.redis.get_redis_client", lambda: client)
+    from app.core import redis as redis_module
+    from app.services import rate_limit
+
+    try:
+        redis_module.get_redis_client.cache_clear()
+    except Exception:
+        pass
+
+    monkeypatch.setattr(redis_module, "get_redis_client", lambda: client)
+    monkeypatch.setattr(rate_limit, "get_redis_client", lambda: client)
     monkeypatch.setattr("app.services.auth_email._get_redis", lambda: client)
     return client
+
+
+@pytest.fixture(autouse=True)
+def patch_point_for_sqlite(monkeypatch):
+    """Avoid WKTElement binding issues on SQLite by using plain strings."""
+    if _is_sqlite:
+        from app.api.endpoints import rides as rides_api
+
+        monkeypatch.setattr(
+            rides_api, "_to_point", lambda longitude, latitude: f"POINT({longitude} {latitude})"
+        )
 
 
 @pytest.fixture(autouse=True)

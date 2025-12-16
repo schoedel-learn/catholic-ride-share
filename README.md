@@ -6,6 +6,8 @@ A community-driven ride-sharing application connecting Catholics who need transp
 
 To strengthen Catholic communities by ensuring that transportation is never a barrier to participating in the sacraments and church life.
 
+> **📋 For Stakeholders**: If you're evaluating this project and have questions about risk, liability, or security, please see our comprehensive [Stakeholder Guide](docs/STAKEHOLDER_GUIDE.md) which addresses these concerns in detail.
+
 ## What We Are Building
 
 At a high level, Catholic Ride Share is:
@@ -309,6 +311,25 @@ Background checks / notifications (future):
 AI (future):
 - `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` - For AI assistant and matching features
 
+## Demo Quickstart
+
+1) Copy env files:
+   - `cp backend/.env.example backend/.env`
+   - `cp frontend/.env.local.example frontend/.env.local`
+   - Update `SECRET_KEY` and any SMTP credentials if you plan to send real email.
+2) Start the stack: `docker compose up --build`
+3) Seed demo data (rider, driver, parishes, sample rides):  
+   `docker compose run --rm backend python app/seed_demo.py`
+4) Frontend: http://localhost:3000  
+   Backend API docs: http://localhost:8000/docs
+5) Demo accounts:  
+   - Rider: `rider.demo@example.com` / `Password123!`  
+   - Driver: `driver.demo@example.com` / `Password123!`
+
+Notes:
+- If SMTP is not configured, verification and reset codes are logged to the backend console for local demos.
+- Redis/Postgres addresses in `.env` are pre-set for docker-compose (`db`, `redis`).
+
 ## Contributing
 
 This is a community project. Contributions are welcome!
@@ -321,18 +342,28 @@ This is a community project. Contributions are welcome!
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
+**Note**: The `main` branch is protected and requires pull request reviews and passing CI tests before merging. See [Branch Protection Documentation](docs/BRANCH_PROTECTION.md) for details.
+
 ## External Integrations
 
 If you're using external tools like BrainGrid, GitHub Copilot, or other integrations with this repository, please see the [External Integrations Guide](docs/EXTERNAL_INTEGRATIONS.md) for setup instructions and troubleshooting.
 
 ## Security
 
-- Never commit `.env` files or sensitive credentials
-- All passwords are hashed using bcrypt
-- JWT tokens for authentication
-- Input validation using Pydantic
-- SQL injection protection via SQLAlchemy ORM
-- CORS configuration for frontend access
+This project takes security seriously. We use multiple layers of protection:
+
+- **GitHub Advanced Security**: CodeQL scanning, secret scanning, and dependency scanning
+- **Automated Updates**: Dependabot monitors and updates vulnerable dependencies
+- **Authentication**: JWT tokens with expiration and secure refresh mechanism
+- **Password Security**: Bcrypt hashing with proper salt
+- **Input Validation**: Pydantic schemas validate all user inputs
+- **SQL Injection Protection**: SQLAlchemy ORM with parameterized queries
+- **Environment Security**: Never commit `.env` files or credentials
+- **CORS Configuration**: Controlled cross-origin resource sharing
+
+For security vulnerabilities, see [SECURITY.md](SECURITY.md) for responsible disclosure.
+
+For setting up GitHub security features, see [GitHub Security Setup Guide](docs/GITHUB_SECURITY_SETUP.md).
 
 ## License
 
@@ -350,6 +381,12 @@ The detailed technical roadmap is maintained in the `braingrid-improvements` doc
 - **Parishes**: Simple parish records (name + address only) with geospatial search.  
 - **Admin & analytics**: Admin APIs and dashboards for verification, issues, and high-level stats.  
 - **Clients & AI**: Flutter mobile app, admin web UI, and AI-assisted matching/assistant.
+
+## Documentation
+
+- **[Stakeholder Guide](docs/STAKEHOLDER_GUIDE.md)** - Comprehensive information on risk, liability, security, and safety for stakeholders
+- **[Architecture](docs/ARCHITECTURE.md)** - Technical architecture and system design
+- **[Contributing](CONTRIBUTING.md)** - How to contribute to the project
 
 ## Support
 
