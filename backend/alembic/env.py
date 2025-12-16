@@ -1,18 +1,19 @@
 """Alembic migration environment."""
 
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-from alembic import context
 import os
 import sys
+from logging.config import fileConfig
+
+from sqlalchemy import engine_from_config, pool
+
+from alembic import context
 
 # Add the parent directory to the path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+from app import models  # Import all models
 from app.core.config import settings
 from app.db.session import Base
-from app import models  # Import all models
 
 # this is the Alembic Config object
 config = context.config

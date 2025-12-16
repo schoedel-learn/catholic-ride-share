@@ -5,9 +5,10 @@ Revises: 0001_add_user_location_fields
 Create Date: 2025-12-13
 """
 
-from alembic import op
 import sqlalchemy as sa
 from geoalchemy2 import Geography
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "0002_add_core_domain_tables"

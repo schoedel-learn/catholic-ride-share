@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import mimetypes
 import uuid
 from typing import BinaryIO, Optional
 

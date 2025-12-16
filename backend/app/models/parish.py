@@ -1,8 +1,9 @@
 """Parish model."""
 
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime
+
 from geoalchemy2 import Geography
+from sqlalchemy import Column, DateTime, Integer, String
 
 from app.db.session import Base
 

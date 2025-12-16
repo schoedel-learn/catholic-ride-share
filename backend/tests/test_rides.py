@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
 
+from fastapi import status
+
 from app.db.session import SessionLocal
 from app.models.user import User
-from fastapi import status
 
 
 def _verify_user(email: str) -> None:
