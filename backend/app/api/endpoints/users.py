@@ -176,4 +176,3 @@ def update_user_location(
     db.refresh(current_user)
 
     return current_user
-

@@ -23,7 +23,7 @@ class Parish(Base):
     zip_code = Column(String, nullable=False)
 
     # Location (using PostGIS)
-    location = Column(Geography(geometry_type='POINT', srid=4326), nullable=True)
+    location = Column(Geography(geometry_type="POINT", srid=4326), nullable=True)
 
     # Contact
     phone = Column(String, nullable=True)
