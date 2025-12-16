@@ -141,6 +141,7 @@ catholic-ride-share/
    cp .env.example .env
    # Edit .env with your configuration
    ```
+   > **Important:** Set strong, unique values for `POSTGRES_PASSWORD` (used by `docker-compose.prod.yml`) and `SECRET_KEY`. The example file now ships with placeholders only, so deployments will fail until you provide real credentials.
 
 3. **Using Docker (Recommended)**
    ```bash

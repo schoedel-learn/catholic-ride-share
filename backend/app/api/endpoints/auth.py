@@ -2,6 +2,10 @@
 
 from datetime import timedelta
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
+
 from app.core.config import settings
 from app.core.security import (
     create_access_token,
@@ -23,9 +27,6 @@ from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserResponse
 from app.services import auth_email
 from app.services.rate_limit import check_rate_limit
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
 
 router = APIRouter()
 
