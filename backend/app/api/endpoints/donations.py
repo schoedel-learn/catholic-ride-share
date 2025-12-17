@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from sqlalchemy.orm import Session
+
 from app.api.deps.auth import get_current_verified_user
 from app.db.session import get_db
 from app.models.donation import Donation
@@ -20,8 +23,6 @@ from app.schemas.donation import (
     RideReviewResponse,
 )
 from app.services.payment import PaymentService, StripeNotConfiguredError
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
-from sqlalchemy.orm import Session
 
 router = APIRouter()
 
