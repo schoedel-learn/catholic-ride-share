@@ -1,154 +1,134 @@
 # Security Policy
 
-## Overview
+## Reporting Security Vulnerabilities
 
-Catholic Ride Share is committed to ensuring the security and privacy of our users, especially given our mission to serve the Catholic community. We take security vulnerabilities seriously and appreciate your efforts to responsibly disclose your findings.
+If you discover a security vulnerability in this project, please report it responsibly:
+
+1. **DO NOT** open a public issue
+2. **RECOMMENDED**: Use GitHub's private security advisory feature:
+   - Go to the repository's "Security" tab
+   - Click "Report a vulnerability"
+   - Fill out the security advisory form
+3. Or open a GitHub issue with the `security` label if the vulnerability is not critical
+
+We will acknowledge your report within 48 hours and provide regular updates on our progress.
 
 ## Supported Versions
 
-We currently support the following versions with security updates:
-
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.1.x   | :white_check_mark: |
-
-As the project is in active development, we recommend always using the latest version from the main branch.
-
-## Reporting a Vulnerability
-
-**Please do not report security vulnerabilities through public GitHub issues.**
-
-If you discover a security vulnerability, please follow these steps:
-
-### 1. Private Disclosure
-
-Send an email to the repository maintainers with:
-- A description of the vulnerability
-- Steps to reproduce the issue
-- Potential impact
-- Any suggested fixes (if applicable)
-
-### 2. Response Timeline
-
-- **Initial Response**: We aim to acknowledge receipt within 48 hours
-- **Status Updates**: We will provide updates on our progress within 7 days
-- **Resolution**: We aim to resolve critical vulnerabilities within 30 days
-
-### 3. Coordinated Disclosure
-
-- We request that you do not publicly disclose the vulnerability until we have had a chance to address it
-- Once fixed, we will coordinate with you on the timing of public disclosure
-- We are happy to credit you for the discovery (unless you prefer to remain anonymous)
-
-## Security Best Practices for Contributors
-
-### Code Security
-
-1. **Never commit secrets**: API keys, passwords, tokens, or any sensitive data
-2. **Use environment variables**: All secrets must be stored in `.env` files (which are gitignored)
-3. **Input validation**: Always validate and sanitize user inputs
-4. **SQL injection prevention**: Use SQLAlchemy ORM properly, avoid raw SQL queries
-5. **XSS prevention**: Sanitize all user-generated content before display
-6. **Authentication**: Implement proper JWT token validation and expiration
-7. **Password security**: Always hash passwords using bcrypt (never store plaintext)
-
-### Dependencies
-
-1. **Keep dependencies updated**: Regularly update to patch known vulnerabilities
-2. **Review new dependencies**: Vet third-party packages before adding them
-3. **Use Dependabot**: We use automated dependency updates to stay current
-4. **Monitor security advisories**: Check GitHub Security Advisories regularly
-
-### Data Protection
-
-1. **User privacy**: Minimize data collection to only what is necessary
-2. **Data encryption**: Use TLS/SSL for all data in transit
-3. **Database security**: Encrypt sensitive data at rest
-4. **Access control**: Implement proper authorization checks
-5. **Audit logging**: Log security-relevant events
-
-### API Security
-
-1. **Rate limiting**: Implement rate limits to prevent abuse
-2. **CORS configuration**: Properly configure allowed origins
-3. **Authentication**: Require authentication for sensitive endpoints
-4. **Error messages**: Avoid exposing sensitive information in error messages
+| main    | :white_check_mark: |
+| develop | :white_check_mark: |
+| < 1.0   | :x:                |
 
 ## Security Features
 
-### Implemented
+### GitHub Advanced Security
 
-- ✅ JWT-based authentication with access and refresh tokens
-- ✅ Bcrypt password hashing
-- ✅ Email verification for new accounts
-- ✅ Secure password reset flow with single-use tokens
-- ✅ Input validation using Pydantic
-- ✅ SQL injection protection via SQLAlchemy ORM
-- ✅ CORS configuration
-- ✅ Environment variable management
-- ✅ Secure file upload handling with size limits
+This repository uses GitHub Advanced Security features:
 
-### Planned
+- **Dependency Graph**: Automatically tracks dependencies
+- **Dependabot Alerts**: Monitors for vulnerable dependencies
+- **Dependabot Security Updates**: Automatically creates PRs for security patches
+- **CodeQL Analysis**: Scans code for security vulnerabilities
+- **Secret Scanning**: Detects accidentally committed secrets
 
-- 🔄 Rate limiting on authentication endpoints
-- 🔄 Two-factor authentication (2FA)
-- 🔄 Driver background checks via Checkr API
-- 🔄 IP-based security monitoring
-- 🔄 Automated security scanning in CI/CD
-- 🔄 CSP (Content Security Policy) headers
-- 🔄 Advanced audit logging
+### Code Security Measures
 
-## Known Security Considerations
+- **Authentication**: JWT tokens with expiration and refresh tokens
+- **Password Security**: Bcrypt hashing with salt
+- **Input Validation**: Pydantic schemas validate all inputs
+- **SQL Injection Protection**: SQLAlchemy ORM prevents SQL injection
+- **CORS Configuration**: Controlled cross-origin resource sharing
+- **Rate Limiting**: Protection against brute force attacks
+- **Environment Variables**: Sensitive data never committed to repository
 
-### Email Enumeration Protection
+### Data Protection
 
-Our authentication endpoints are designed to prevent email enumeration attacks:
-- Forgot password always returns success (doesn't reveal if email exists)
-- Registration errors are generic when possible
-- Rate limiting prevents brute force attempts
+- **Encryption**: All data encrypted in transit (HTTPS/TLS)
+- **Location Privacy**: Coordinates blurred until ride acceptance
+- **Minimal Data Collection**: Only essential information stored
+- **Data Retention**: Clear policies for data lifecycle
+- **GDPR Compliance**: User data export and deletion capabilities
 
-### Geolocation Privacy
+## Security Best Practices
 
-- User locations are optional and only stored as approximate coordinates
-- Exact addresses are only shared between matched riders and drivers
-- Location data is never publicly exposed
+### For Contributors
 
-### Payment Security
+1. **Never commit secrets**: Use environment variables
+2. **Keep dependencies updated**: Monitor Dependabot alerts
+3. **Follow OWASP Top 10**: Be aware of common vulnerabilities
+4. **Use parameterized queries**: SQLAlchemy handles this
+5. **Validate all inputs**: Use Pydantic schemas
+6. **Sanitize user content**: Prevent XSS attacks
+7. **Test security features**: Include security tests
+8. **Review code carefully**: Security implications of changes
 
-- We use Stripe for payment processing (PCI DSS compliant)
-- We never store credit card information
-- All payment data is handled by Stripe's secure infrastructure
+### For Deployers
+
+1. **Use strong SECRET_KEY**: Generate cryptographically secure keys
+2. **Enable HTTPS**: Never run production over HTTP
+3. **Secure database**: Use strong passwords, restrict access
+4. **Monitor logs**: Set up security monitoring
+5. **Regular updates**: Keep all dependencies current
+6. **Backup strategy**: Regular encrypted backups
+7. **Access control**: Principle of least privilege
+8. **Network security**: Use firewalls and VPCs
+
+## Security Audit Log
+
+### Recent Security Improvements
+
+- 2024-11-22: Added CodeQL analysis workflow
+- 2024-11-22: Enabled Dependabot for automated security updates
+- 2024-11-22: Created security policy documentation
+
+## Vulnerability Disclosure Timeline
+
+We aim to:
+- Acknowledge reports within 48 hours
+- Provide initial assessment within 1 week
+- Issue patches within 30 days for critical vulnerabilities
+- Publicly disclose after patch is released (coordinated disclosure)
 
 ## Compliance
 
-This project follows security best practices including:
+This application handles sensitive personal data and must comply with:
 
-- **OWASP Top 10**: Mitigation strategies for common web vulnerabilities
-- **CWE/SANS Top 25**: Addressing most dangerous software weaknesses
-- **GDPR considerations**: Privacy-first design (though full compliance depends on deployment)
-- **Non-profit best practices**: Appropriate security for community-driven projects
+- **GDPR**: European data protection regulation
+- **CCPA**: California Consumer Privacy Act
+- **COPPA**: If serving users under 13 (not current scope)
+- **PCI DSS**: For payment processing (Stripe handles this)
 
-## Security Tools
+## Security Checklist for Releases
 
-We use the following tools to maintain security:
+Before each release:
 
-- **Dependabot**: Automated dependency updates
-- **CodeQL**: Code scanning for vulnerabilities
-- **pytest**: Comprehensive test coverage including security tests
-- **GitHub Secret Scanning**: Automatic detection of committed secrets
-- **Pre-commit hooks**: Local validation before commits (recommended)
+- [ ] Run CodeQL analysis - no high/critical issues
+- [ ] All Dependabot security alerts addressed
+- [ ] Security tests passing
+- [ ] Secrets audit - no hardcoded credentials
+- [ ] Dependencies up to date
+- [ ] Security.txt updated
+- [ ] Changelog includes security fixes
+- [ ] Documentation reflects security features
 
-## Additional Resources
+## Resources
 
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [CWE/SANS Top 25](https://cwe.mitre.org/top25/)
+- [GitHub Security Features](https://docs.github.com/en/code-security)
 - [FastAPI Security](https://fastapi.tiangolo.com/tutorial/security/)
-- [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)
+- [SQLAlchemy Security](https://docs.sqlalchemy.org/en/14/faq/security.html)
 
-## Questions?
+## Contact
 
-If you have questions about security practices in this project, please open a GitHub issue with the "security" label or contact the maintainers directly.
+For security concerns:
+- **Critical Vulnerabilities**: Use GitHub's private security advisory feature (Security tab → Report a vulnerability)
+- **General Security**: Open an issue with the `security` label
+- **Urgent Issues**: Create a high-priority GitHub issue and tag repository maintainers
 
----
+## Attribution
 
-Thank you for helping keep Catholic Ride Share and our community safe!
+We appreciate responsible disclosure and will credit researchers who report vulnerabilities (with their permission).
+
+

@@ -1,6 +1,10 @@
+# Dependabot configuration for automated dependency updates
+# This helps keep dependencies secure and up-to-date
+# Requires Dependency graph to be enabled in repository settings
+
 version: 2
 updates:
-  # Enable version updates for Python dependencies
+  # Python dependencies (backend)
   - package-ecosystem: "pip"
     directory: "/backend"
     schedule:
@@ -8,61 +12,95 @@ updates:
       day: "monday"
       time: "09:00"
     open-pull-requests-limit: 10
-    reviewers:
-      - "schoedel-learn"
     labels:
       - "dependencies"
       - "python"
+      - "security"
     commit-message:
-      prefix: "chore"
-      include: "scope"
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    reviewers:
+      - "schoedel-learn"
     # Group minor and patch updates together to reduce PR noise
     groups:
-      development-dependencies:
-        patterns:
-          - "pytest*"
-          - "black"
-          - "flake8"
-          - "mypy"
-          - "isort"
-        update-types:
-          - "minor"
-          - "patch"
       fastapi-ecosystem:
         patterns:
-          - "fastapi"
-          - "uvicorn"
+          - "fastapi*"
           - "pydantic*"
-          - "starlette"
-        update-types:
-          - "patch"
+          - "uvicorn*"
+      database:
+        patterns:
+          - "sqlalchemy*"
+          - "alembic*"
+          - "psycopg2*"
+          - "geoalchemy2*"
+      aws:
+        patterns:
+          - "boto3*"
+          - "botocore*"
+      testing:
+        patterns:
+          - "pytest*"
+      ai-ml:
+        patterns:
+          - "openai*"
+          - "anthropic*"
+          - "scikit-learn*"
+          - "numpy*"
+      code-quality:
+        patterns:
+          - "black*"
+          - "flake8*"
+          - "mypy*"
+          - "isort*"
 
-  # Enable version updates for Docker
+  # Docker dependencies
   - package-ecosystem: "docker"
     directory: "/backend"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-    reviewers:
-      - "schoedel-learn"
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "docker"
+      - "security"
     commit-message:
-      prefix: "chore"
+      prefix: "chore(docker)"
+    reviewers:
+      - "schoedel-learn"
 
-  # Enable version updates for GitHub Actions
+  # Docker Compose
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+      - "security"
+    commit-message:
+      prefix: "chore(docker)"
+    reviewers:
+      - "schoedel-learn"
+
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-    reviewers:
-      - "schoedel-learn"
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "github-actions"
+      - "security"
     commit-message:
-      prefix: "chore"
+      prefix: "chore(ci)"
+    reviewers:
+      - "schoedel-learn"

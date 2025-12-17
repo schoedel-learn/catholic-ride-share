@@ -1,15 +1,17 @@
 """Ride model."""
 
-from datetime import datetime
-from sqlalchemy import Column, Integer, DateTime, ForeignKey, Enum
-from geoalchemy2 import Geography
 import enum
+from datetime import datetime
+
+from geoalchemy2 import Geography
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer
 
 from app.db.session import Base
 
 
 class RideStatus(str, enum.Enum):
     """Ride status enum."""
+
     ACCEPTED = "accepted"
     DRIVER_ENROUTE = "driver_enroute"
     ARRIVED = "arrived"
@@ -35,11 +37,24 @@ class Ride(Base):
     dropoff_time = Column(DateTime, nullable=True)
 
     # Actual locations (may differ slightly from requested)
-    actual_pickup_location = Column(Geography(geometry_type='POINT', srid=4326), nullable=True)
-    actual_dropoff_location = Column(Geography(geometry_type='POINT', srid=4326), nullable=True)
+    actual_pickup_location = Column(Geography(geometry_type="POINT", srid=4326), nullable=True)
+    actual_dropoff_location = Column(Geography(geometry_type="POINT", srid=4326), nullable=True)
 
     # Status
-    status = Column(Enum(RideStatus), default=RideStatus.ACCEPTED, nullable=False)
+    status = Column(
+        Enum(
+            "accepted",
+            "driver_enroute",
+            "arrived",
+            "picked_up",
+            "in_progress",
+            "completed",
+            "cancelled",
+            name="ridestatus",
+        ),
+        default="accepted",
+        nullable=False,
+    )
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     completed_at = Column(DateTime, nullable=True)

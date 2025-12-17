@@ -2,6 +2,10 @@
 
 from datetime import timedelta
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
+
 from app.core.config import settings
 from app.core.security import (
     create_access_token,
@@ -22,9 +26,7 @@ from app.schemas.auth import (
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserResponse
 from app.services import auth_email
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
+from app.services.rate_limit import check_rate_limit
 
 router = APIRouter()
 
@@ -32,6 +34,12 @@ router = APIRouter()
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
     """Register a new user and send verification email."""
+    check_rate_limit(
+        key=f"register:{user_data.email.lower()}",
+        limit=5,
+        window_seconds=60 * 10,
+        error_message="Too many registration attempts. Please try again later.",
+    )
     # Check if user already exists
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
@@ -71,6 +79,12 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ):
     """Login and get access token."""
+    check_rate_limit(
+        key=f"login:{form_data.username.lower()}",
+        limit=10,
+        window_seconds=60 * 5,
+        error_message="Too many login attempts. Please wait and try again.",
+    )
     user = db.query(User).filter(User.email == form_data.username).first()
 
     if not user or not verify_password(form_data.password, user.password_hash):
@@ -87,8 +101,8 @@ def login(
         )
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(subject=user.id, expires_delta=access_token_expires)
-    refresh_token = create_refresh_token(subject=user.id)
+    access_token = create_access_token(subject=str(user.id), expires_delta=access_token_expires)
+    refresh_token = create_refresh_token(subject=str(user.id))
 
     return {
         "access_token": access_token,
@@ -100,6 +114,12 @@ def login(
 @router.post("/verify-email", response_model=MessageResponse)
 def verify_email(payload: EmailVerificationRequest, db: Session = Depends(get_db)):
     """Verify a user's email address using a 6-digit code."""
+    check_rate_limit(
+        key=f"verify_email:{payload.email.lower()}",
+        limit=10,
+        window_seconds=60 * 10,
+        error_message="Too many verification attempts. Please try again later.",
+    )
     user = db.query(User).filter(User.email == payload.email).first()
     if not user:
         raise HTTPException(
@@ -125,6 +145,12 @@ def verify_email(payload: EmailVerificationRequest, db: Session = Depends(get_db
 @router.post("/resend-verification", response_model=MessageResponse)
 def resend_verification(payload: ResendVerificationRequest, db: Session = Depends(get_db)):
     """Resend verification email to an unverified user."""
+    check_rate_limit(
+        key=f"resend_verification:{payload.email.lower()}",
+        limit=5,
+        window_seconds=60 * 10,
+        error_message="Too many verification emails requested. Please try again later.",
+    )
     user = db.query(User).filter(User.email == payload.email).first()
     if not user:
         # Do not reveal whether the email exists
@@ -153,6 +179,12 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
     # Apply rate limiting based on the email identifier before checking existence.
     # Even when the limit is exceeded, we still return the generic message to avoid
     # revealing whether the email is registered.
+    check_rate_limit(
+        key=f"forgot_password:{payload.email.lower()}",
+        limit=5,
+        window_seconds=60 * 10,
+        error_message=generic_message,
+    )
     if not auth_email.can_request_password_reset(payload.email):
         return MessageResponse(message=generic_message)
 
@@ -213,6 +245,22 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
             detail="Could not complete password reset. Please try again.",
         )
 
-    db.commit()
+    # Commit the password change. If this fails after the token has been
+    # invalidated, attempt to restore the token so the user can retry.
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        try:
+            auth_email.store_password_reset_token(user, payload.token)
+        except Exception:
+            # Best-effort restoration; if this fails, the user will need
+            # to initiate a new password reset.
+            pass
+
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Could not complete password reset. Please try again.",
+        )
 
     return MessageResponse(message="Password has been reset successfully")

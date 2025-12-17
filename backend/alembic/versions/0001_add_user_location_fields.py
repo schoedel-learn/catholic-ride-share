@@ -1,18 +1,18 @@
 """Add user location tracking fields.
 
 Revision ID: 0001_add_user_location_fields
-Revises: 
+Revises:
 Create Date: 2025-11-21
 """
 
-from alembic import op
 import sqlalchemy as sa
 from geoalchemy2 import Geography
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "0001_add_user_location_fields"
-down_revision = None
+down_revision = "0000_initial_schema"
 branch_labels = None
 depends_on = None
 
@@ -37,5 +37,3 @@ def downgrade() -> None:
     """Remove user location tracking columns."""
     op.drop_column("users", "last_location_updated_at")
     op.drop_column("users", "last_known_location")
-
-

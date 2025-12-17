@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  /* PWA safe area insets */
+  --sat: env(safe-area-inset-top);
+  --sar: env(safe-area-inset-right);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+  /* Brand colors for CSS usage - High contrast flat design */
+  --color-navy: #0A1628;
+  --color-marian: #0052CC;
+  --color-gold: #FFB800;
+}
+
+* {
+  scroll-behavior: smooth;
+  /* Prevent text size adjustment on orientation change */
+  -webkit-text-size-adjust: 100%;
+}
+
+html {
+  /* Enable smooth scrolling */
+  scroll-behavior: smooth;
+  /* Prevent pull-to-refresh on PWA */
+  overscroll-behavior-y: contain;
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  /* Prevent elastic scrolling on iOS */
+  overscroll-behavior: none;
+  /* Prevent text selection on buttons/UI */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* PWA safe area utilities */
+@layer utilities {
+  .safe-top {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  .safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  .safe-left {
+    padding-left: max(1rem, env(safe-area-inset-left));
+  }
+  .safe-right {
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  .safe-x {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  .safe-y {
+    padding-top: max(1rem, env(safe-area-inset-top));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Remove default link underlines for nav/buttons */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Content links get underlines */
+article a,
+p a,
+.prose a {
+  text-decoration: underline;
+  text-decoration-color: var(--color-marian);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+article a:hover,
+p a:hover,
+.prose a:hover {
+  text-decoration-color: var(--color-gold);
+}
+
+/* Smooth button press animation */
+button,
+[role="button"],
+a[href] {
+  transition: transform 0.1s ease-out;
+}
+
+button:active,
+[role="button"]:active {
+  transform: scale(0.98);
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-marian);
+  outline-offset: 2px;
+}
+
+/* Hide focus ring for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}

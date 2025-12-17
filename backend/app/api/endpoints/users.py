@@ -1,9 +1,10 @@
 """User endpoints."""
 
+from datetime import datetime
 from io import BytesIO
-from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from geoalchemy2 import WKTElement
 from PIL import Image, ImageOps
 from sqlalchemy.orm import Session
 
@@ -11,7 +12,7 @@ from app.api.deps.auth import get_current_active_user
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.user import UserResponse, UserUpdate
+from app.schemas.user import UserLocationUpdate, UserResponse, UserUpdate
 from app.services.storage import delete_file, generate_profile_photo_key, upload_file_obj
 
 router = APIRouter()
@@ -152,3 +153,25 @@ def get_user(
         raise HTTPException(status_code=404, detail="User not found")
 
     return user
+
+
+@router.post("/location", response_model=UserResponse)
+def update_user_location(
+    location: UserLocationUpdate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+) -> UserResponse:
+    """Update the current user's last known location.
+
+    This is typically called by the mobile or web client when the user
+    explicitly shares their location (e.g., before requesting or offering a
+    ride). Location is stored as a PostGIS POINT(longitude, latitude).
+    """
+    point_wkt = f"POINT({location.longitude} {location.latitude})"
+    current_user.last_known_location = WKTElement(point_wkt, srid=4326)
+    current_user.last_location_updated_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(current_user)
+
+    return current_user
