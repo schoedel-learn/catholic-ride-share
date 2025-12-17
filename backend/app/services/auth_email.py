@@ -6,11 +6,12 @@ import logging
 import secrets
 from datetime import timedelta
 
+from redis import Redis
+
 from app.core.config import settings
 from app.core.redis import get_redis_client
 from app.models.user import User
 from app.services.email import send_email
-from redis import Redis
 
 logger = logging.getLogger(__name__)
 

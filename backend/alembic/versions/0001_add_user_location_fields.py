@@ -6,8 +6,9 @@ Create Date: 2025-11-21
 """
 
 import sqlalchemy as sa
-from alembic import op
 from geoalchemy2 import Geography
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "0001_add_user_location_fields"
