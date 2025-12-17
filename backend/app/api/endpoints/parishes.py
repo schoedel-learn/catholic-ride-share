@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from typing import Optional
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
 from app.db.session import get_db
 from app.models.parish import Parish
 from app.schemas.parish import ParishResponse
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 
 router = APIRouter()
 

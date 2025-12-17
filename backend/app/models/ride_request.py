@@ -3,9 +3,10 @@
 import enum
 from datetime import datetime
 
-from app.db.session import Base
 from geoalchemy2 import Geography
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, Text
+
+from app.db.session import Base
 
 
 class DestinationType(str, enum.Enum):
