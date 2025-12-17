@@ -1,14 +1,18 @@
 """Main FastAPI application entry point."""
 
-from app.api.endpoints import auth, donations, drivers, parishes, rides, users
-from app.core.config import settings
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from app.api.endpoints import auth, donations, drivers, parishes, rides, users
+from app.core.config import settings
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Catholic Ride Share - Connecting faithful community members for transportation to Mass, Confession, and Church events",
+    description=(
+        "Catholic Ride Share - Connecting faithful community members for transportation to "
+        "Mass, Confession, and Church events"
+    ),
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
 

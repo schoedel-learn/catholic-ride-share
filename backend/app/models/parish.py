@@ -1,8 +1,9 @@
 """Parish model."""
 
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime
+
 from geoalchemy2 import Geography
+from sqlalchemy import Column, DateTime, Integer, String
 
 from app.db.session import Base
 
@@ -23,7 +24,7 @@ class Parish(Base):
     zip_code = Column(String, nullable=False)
 
     # Location (using PostGIS)
-    location = Column(Geography(geometry_type='POINT', srid=4326), nullable=True)
+    location = Column(Geography(geometry_type="POINT", srid=4326), nullable=True)
 
     # Contact
     phone = Column(String, nullable=True)

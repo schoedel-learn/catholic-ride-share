@@ -3,8 +3,9 @@
 from datetime import datetime
 from typing import Optional
 
-from app.models.user import UserRole
 from pydantic import BaseModel, EmailStr, Field
+
+from app.models.user import UserRole
 
 
 class UserBase(BaseModel):
