@@ -120,6 +120,12 @@ mypy app/
 
 ### Database Migrations
 
+Rule: model changes must be accompanied by Alembic migrations:
+- Change SQLAlchemy models in `app/models/`
+- Generate a migration
+- Apply it locally
+- Run the schema drift check (fails if you forgot a migration)
+
 Create migration:
 ```bash
 alembic revision --autogenerate -m "description"
@@ -128,6 +134,11 @@ alembic revision --autogenerate -m "description"
 Apply migrations:
 ```bash
 alembic upgrade head
+```
+
+Check for schema drift (recommended for CI / before PRs):
+```bash
+python scripts/check_schema_drift.py
 ```
 
 Rollback:

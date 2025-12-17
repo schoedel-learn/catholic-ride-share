@@ -1,19 +1,18 @@
 """Alembic migration environment."""
 
+from logging.config import fileConfig
+from alembic import context
+from sqlalchemy import engine_from_config
+from sqlalchemy import pool
 import os
 import sys
-from logging.config import fileConfig
-
-from sqlalchemy import engine_from_config, pool
-
-from alembic import context
 
 # Add the parent directory to the path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from app import models  # Import all models
 from app.core.config import settings
 from app.db.session import Base
+from app import models  # Import all models
 
 # this is the Alembic Config object
 config = context.config
@@ -29,12 +28,51 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
+EXCLUDED_SCHEMAS = {"tiger", "topology"}
+EXCLUDED_TABLES = {
+    # PostGIS extension-managed objects (should not be managed by app migrations)
+    "spatial_ref_sys",
+    "geometry_columns",
+    "geography_columns",
+    "raster_columns",
+    "raster_overviews",
+}
+
+
+def include_object(object_, name: str | None, type_: str, reflected: bool, compare_to) -> bool:
+    """Filter objects included in Alembic autogenerate.
+
+    This project uses PostGIS. The `postgis/postgis` Docker image enables extensions like
+    `postgis_tiger_geocoder` and `postgis_topology`, which create many extension-managed tables
+    in schemas like `tiger` and `topology` (and a few in `public` like `spatial_ref_sys`).
+
+    Those objects must NOT be created/dropped by our app migrations.
+    """
+    schema = getattr(object_, "schema", None) or "public"
+
+    # Ignore objects that exist in the database but are not represented in SQLAlchemy metadata.
+    # This prevents Alembic from generating destructive "drop_*" operations for extension-managed
+    # tables (PostGIS tiger/topology, etc.) and any other DB-owned objects.
+    if reflected and compare_to is None:
+        return False
+
+    if schema in EXCLUDED_SCHEMAS:
+        return False
+
+    if type_ == "table" and name in EXCLUDED_TABLES:
+        return False
+
+    return True
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
         target_metadata=target_metadata,
+        include_schemas=True,
+        include_object=include_object,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
@@ -52,7 +90,12 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            include_schemas=True,
+            include_object=include_object,
+        )
 
         with context.begin_transaction():
             context.run_migrations()
