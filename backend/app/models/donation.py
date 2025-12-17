@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from app.db.session import Base
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+
+from app.db.session import Base
 
 
 class Donation(Base):

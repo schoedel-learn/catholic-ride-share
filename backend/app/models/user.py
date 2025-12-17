@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
-from app.db.session import Base
 from geoalchemy2 import Geography
 from sqlalchemy import Boolean, DateTime, Enum, Float, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.db.session import Base
+
+if TYPE_CHECKING:
+    from app.models.driver_profile import DriverProfile
 
 
 class UserRole(str, enum.Enum):
