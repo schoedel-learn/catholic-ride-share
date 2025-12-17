@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
+from geoalchemy2 import WKTElement
+
 from app.core.security import get_password_hash
 from app.db.session import SessionLocal
 from app.models.parish import Parish
 from app.models.ride import Ride
 from app.models.ride_request import RideRequest
 from app.models.user import User
-from geoalchemy2 import WKTElement
 
 
 def _get_or_create_parish(session, name: str, city: str = "Springfield") -> Parish:
