@@ -9,4 +9,5 @@ def test_framework_works():
 def test_imports():
     """Verify basic imports work"""
     import sys
+
     assert sys.version_info >= (3, 8)
