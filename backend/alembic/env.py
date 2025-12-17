@@ -11,9 +11,9 @@ from alembic import context
 # Add the parent directory to the path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from app import models  # Import all models
-from app.core.config import settings
-from app.db.session import Base
+from app import models  # noqa: F401, E402
+from app.core.config import settings  # noqa: E402
+from app.db.session import Base  # noqa: E402
 
 # this is the Alembic Config object
 config = context.config
