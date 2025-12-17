@@ -37,4 +37,3 @@ celery_app = _create_celery()
 def ping() -> str:
     """Lightweight health task for smoke tests."""
     return "pong"
-

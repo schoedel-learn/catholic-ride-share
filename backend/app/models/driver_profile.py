@@ -1,7 +1,8 @@
 """Driver profile model."""
 
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float, ForeignKey
+
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base

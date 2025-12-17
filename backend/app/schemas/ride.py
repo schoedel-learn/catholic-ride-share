@@ -5,10 +5,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
+from pydantic import BaseModel, Field
+
 from app.models.ride import RideStatus
 from app.models.ride_request import DestinationType, RideRequestStatus
 from app.schemas.donation import DonationIntentResponse
-from pydantic import BaseModel, Field
 
 
 class Location(BaseModel):

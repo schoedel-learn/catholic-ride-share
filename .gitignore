@@ -39,6 +39,7 @@ ENV/
 .env
 .env.local
 .env.*.local
+secrets/
 
 # Database
 *.db
