@@ -6,6 +6,8 @@ A community-driven ride-sharing application connecting Catholics who need transp
 
 To strengthen Catholic communities by ensuring that transportation is never a barrier to participating in the sacraments and church life.
 
+> **📋 For Stakeholders**: If you're evaluating this project and have questions about risk, liability, or security, please see our comprehensive [Stakeholder Guide](docs/STAKEHOLDER_GUIDE.md) which addresses these concerns in detail.
+
 ## What We Are Building
 
 At a high level, Catholic Ride Share is:
@@ -85,7 +87,7 @@ At a high level, Catholic Ride Share is:
 
 ### Frontend / Clients
 
-- **Current**: Backend-first; no production frontend yet.
+- **Current**: Backend-first plus a starter Next.js + Tailwind web scaffold in `frontend/` (accessibility-focused, not production-ready).
 - **Planned**:
   - Flutter mobile app (primary client) for riders and drivers.
   - Lightweight web/admin frontend for admins and operations.
@@ -139,6 +141,7 @@ catholic-ride-share/
    cp .env.example .env
    # Edit .env with your configuration
    ```
+   > **Important:** Set strong, unique values for `POSTGRES_PASSWORD` (used by `docker-compose.prod.yml`) and `SECRET_KEY`. The example file now ships with placeholders only, so deployments will fail until you provide real credentials.
 
 3. **Using Docker (Recommended)**
    ```bash
@@ -175,12 +178,27 @@ catholic-ride-share/
 - **Alternative API Docs**: http://localhost:8000/redoc
 - **Health Check**: http://localhost:8000/health
 
+### Frontend (Next.js + Tailwind) Preview
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+The scaffold uses the App Router, Tailwind, and accessibility-minded defaults to prototype the web/admin experience.
+
 ## Development
 
 ### Running Tests
 ```bash
 cd backend
 pytest
+```
+
+### Frontend Lint
+```bash
+cd frontend
+npm run lint
 ```
 
 ### Code Quality
@@ -364,6 +382,12 @@ The detailed technical roadmap is maintained in the `braingrid-improvements` doc
 - **Parishes**: Simple parish records (name + address only) with geospatial search.  
 - **Admin & analytics**: Admin APIs and dashboards for verification, issues, and high-level stats.  
 - **Clients & AI**: Flutter mobile app, admin web UI, and AI-assisted matching/assistant.
+
+## Documentation
+
+- **[Stakeholder Guide](docs/STAKEHOLDER_GUIDE.md)** - Comprehensive information on risk, liability, security, and safety for stakeholders
+- **[Architecture](docs/ARCHITECTURE.md)** - Technical architecture and system design
+- **[Contributing](CONTRIBUTING.md)** - How to contribute to the project
 
 ## Support
 

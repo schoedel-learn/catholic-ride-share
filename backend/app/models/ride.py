@@ -3,9 +3,10 @@
 import enum
 from datetime import datetime
 
-from app.db.session import Base
 from geoalchemy2 import Geography
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer
+
+from app.db.session import Base
 
 
 class RideStatus(str, enum.Enum):
