@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, Text
+
 from app.db.session import Base
-from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String, Text
 
 
 class RideReview(Base):

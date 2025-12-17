@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import mimetypes
 import uuid
 from typing import BinaryIO, Optional
 
@@ -53,5 +52,3 @@ def delete_file(bucket: str, key: str) -> None:
     """Delete an object from S3."""
     s3 = _get_s3_client()
     s3.delete_object(Bucket=bucket, Key=key)
-
-

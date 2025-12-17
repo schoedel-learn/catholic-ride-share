@@ -1,5 +1,6 @@
-from app.services import auth_email
 from fastapi import status
+
+from app.services import auth_email
 
 
 def test_register_and_login_success(client):
