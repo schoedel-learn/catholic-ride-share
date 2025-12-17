@@ -8,13 +8,14 @@ from decimal import ROUND_HALF_UP, Decimal
 from typing import Any, Optional
 
 import stripe
+from sqlalchemy import func
+from sqlalchemy.orm import Session
+
 from app.core.config import settings
 from app.models.donation import Donation
 from app.models.ride import Ride
 from app.models.ride_request import RideRequest
 from app.models.user import User
-from sqlalchemy import func
-from sqlalchemy.orm import Session
 
 
 class StripeNotConfiguredError(RuntimeError):
