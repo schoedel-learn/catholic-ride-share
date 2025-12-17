@@ -16,5 +16,3 @@ def get_redis_client() -> Redis:
 def get_redis() -> Redis:
     """FastAPI-friendly dependency wrapper."""
     return get_redis_client()
-
-
