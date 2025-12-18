@@ -82,7 +82,7 @@ jobs:
         npm run lint
 
     - name: Upload coverage
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         file: ./backend/coverage.xml
         flags: unittests
