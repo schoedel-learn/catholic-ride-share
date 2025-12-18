@@ -351,7 +351,7 @@ If you're using external tools like BrainGrid, GitHub Copilot, or other integrat
 
 ## Security
 
-This project takes security seriously. We use multiple layers of protection:
+Catholic Ride Share takes security seriously. We use multiple layers of protection:
 
 - **GitHub Advanced Security**: CodeQL scanning, secret scanning, and dependency scanning
 - **Automated Updates**: Dependabot monitors and updates vulnerable dependencies

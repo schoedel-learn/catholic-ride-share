@@ -39,6 +39,11 @@ ENV/
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
+.env.development
+.env.test
+*.env
 secrets/
 
 # Database
@@ -90,3 +95,77 @@ yarn-error.log*
 
 # Build artifacts
 *.whl
+
+# Secrets and credentials
+*secret*
+*credential*
+*password*
+*.pem
+*.key
+*.cert
+*.crt
+id_rsa*
+*.ppk
+*.p12
+*.pfx
+
+# AWS credentials
+.aws/
+*credentials.json
+*service-account*.json
+
+# API keys and tokens
+*api_key*
+*api-key*
+*apikey*
+*.token
+*access_token*
+
+# Security scanning
+.trivy/
+.snyk
+snyk-report.*
+
+# Backup files that might contain sensitive data
+*.backup
+*.bak
+*.old
+*.orig
+dump.rdb
+
+# Secrets and credentials
+*secret*
+*credential*
+*password*
+*.pem
+*.key
+*.cert
+*.crt
+id_rsa*
+*.ppk
+*.p12
+*.pfx
+
+# AWS credentials
+.aws/
+*credentials.json
+*service-account*.json
+
+# API keys and tokens
+*api_key*
+*api-key*
+*apikey*
+*.token
+*access_token*
+
+# Security scanning
+.trivy/
+.snyk
+snyk-report.*
+
+# Backup files that might contain sensitive data
+*.backup
+*.bak
+*.old
+*.orig
+dump.rdb
